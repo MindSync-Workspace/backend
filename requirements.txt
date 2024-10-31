@@ -1,0 +1,20 @@
+# Flask dan ekstensi API
+Flask==2.1.2
+Flask-RESTX==0.5.1    # Menyediakan dokumentasi Swagger otomatis
+
+# Tortoise ORM untuk integrasi database
+tortoise-orm==0.19.3
+asyncpg==0.24.0       # Koneksi PostgreSQL jika menggunakan PostgreSQL
+
+# Validasi input menggunakan Pydantic (jika diperlukan)
+pydantic==1.10.5
+
+# Untuk pengelolaan dotenv (jika menggunakan variabel .env)
+python-dotenv==0.21.0
+
+# Pilihan tambahan untuk keamanan JWT, CORS, dll.
+Flask-JWT-Extended==4.4.4
+Flask-CORS==3.0.10
+
+# Enkripsi AES untuk file
+cryptography==41.0.2

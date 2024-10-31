@@ -1,0 +1,44 @@
+# Lingkungan virtual Python
+.env
+
+# File cache Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Log file
+*.log
+
+# File konfigurasi PostgreSQL
+*.pgdata
+*.pgsql
+*.psql
+
+# Backup atau dump database
+*.sql
+*.backup
+
+# Konfigurasi editor
+.vscode/
+.idea/
+
+# File build atau distribusi
+build/
+dist/
+*.egg-info/
+
+# File yang dihasilkan Docker
+*.pid
+
+# Direktori container Docker jika menggunakan Docker Compose
+docker-compose.override.yml
+
+# File debug dan coverage
+.coverage
+*.cover
+*.coveragerc
+htmlcov/
+
+# Lain-lain
+.DS_Store
+Thumbs.db
