@@ -1,23 +1,31 @@
+# docker/docker-compose.yml
 version: '3.8'
-
 services:
   web:
-    build:
-      context: .
+    build: 
+      context: ..
       dockerfile: docker/Dockerfile
-    env_file:
-      - .env
+    volumes:
+      - ..:/app
     ports:
-      - "5000:5000"
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/mindsync
     depends_on:
       - db
-
+    restart: always
+  
   db:
-    image: postgres:13
-    env_file:
-      - .env
+    image: postgres:14
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=mindsync
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    restart: always
 
 volumes:
   postgres_data:

@@ -3,9 +3,9 @@ from app.models.users import Users
 from app.schemas.users import UserCreate, UserUpdate
 from passlib.hash import bcrypt
 from tortoise.contrib.pydantic import pydantic_model_creator
-from app.utils.response import create_response  # Corrected import path
+from app.utils.response import create_response  
 
-# Define the Pydantic model for Users
+
 User_Pydantic = pydantic_model_creator(Users, name="User", exclude=("password",))
 
 class UserController:
