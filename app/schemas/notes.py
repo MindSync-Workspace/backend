@@ -9,6 +9,7 @@ class NoteCreate(BaseModel):
 
 
 class NoteUpdate(BaseModel):
+    userId: int
     text: Optional[str] = None
 
 
