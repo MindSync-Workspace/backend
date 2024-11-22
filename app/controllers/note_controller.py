@@ -1,33 +1,24 @@
 from fastapi import HTTPException, status
-from app.models.users import Users
+from app.models.notes import Notes
 from app.schemas.users import UserCreate, UserUpdate
 from passlib.hash import bcrypt
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.utils.response import create_response
 
 
-User_Pydantic = pydantic_model_creator(Users, name="User", exclude=("password",))
+User_Pydantic = pydantic_model_creator(Notes, name="Note", exclude=("password",))
 
 
-class UserController:
+class NoteController:
     async def create_user(self, user_data: UserCreate):
-        user = await Users.filter(username=user_data.username).first()
-        if user:
-            raise HTTPException(status_code=400, detail="Username already exists")
-
-        user = await Users.filter(email=user_data.email).first()
-        if user:
-            raise HTTPException(status_code=400, detail="Email already exists")
-
-        user_dict = user_data.model_dump()
+        user_dict = user_data.dict()
         user_dict["password"] = bcrypt.hash(user_dict["password"])
-        user_obj = await Users.create(**user_dict)
+        user_obj = await Notes.create(**user_dict)
         user_data = await User_Pydantic.from_tortoise_orm(user_obj)
-
         return create_response(
             status_code=status.HTTP_201_CREATED,
             message="User created successfully",
-            data=user_data.model_dump(),
+            data=user_data.dict(),
         )
 
     async def get_users(self):
