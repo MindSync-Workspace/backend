@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from app.models.notes import Notes
+from app.models.users import Users
 from app.schemas.users import UserCreate, UserUpdate
 from passlib.hash import bcrypt
 from tortoise.contrib.pydantic import pydantic_model_creator

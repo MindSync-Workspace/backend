@@ -19,7 +19,13 @@ DATABASE_URL = os.getenv(
 register_tortoise(
     app,
     db_url=DATABASE_URL,
-    modules={"models": ["app.models.users", "app.models.notes"]},
+    modules={"models": [
+        "app.models.users", 
+        "app.models.notes",
+        "app.models.organizations",
+        "app.models.memberships",
+        "app.models.documents",
+        "app.models.chats"]},
     generate_schemas=True,
     add_exception_handlers=True,
 )
