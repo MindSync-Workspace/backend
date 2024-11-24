@@ -1,21 +1,23 @@
-FROM python:3.11-slim
+FROM python:3.9-slim
 
 WORKDIR /app
 
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
-    libpq-dev \
-    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy requirements first to leverage Docker cache
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy project files
+COPY ./app ./app
+COPY main.py .
+COPY .env .
 
-ENV PYTHONUNBUFFERED=1
-
+# Expose port
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Command to run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
