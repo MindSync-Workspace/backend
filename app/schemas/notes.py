@@ -16,7 +16,7 @@ class NoteUpdate(BaseModel):
 class NoteResponse(BaseModel):
     id: int
     text = str
-    userId = str
+    user_id = str
     embedding: Optional[List[float]] = None
     tokenIdentifier: Optional[str] = None
     created_at: datetime
