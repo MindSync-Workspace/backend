@@ -8,6 +8,9 @@ from app.routes.users import (
 from app.routes.notes import (
     router as note_router,
 )
+from app.routes.organizations import (
+    router as organization_router,
+)
 
 
 app = FastAPI(title="API for Mindsync", version="1.0.0")
@@ -47,6 +50,7 @@ register_tortoise(
 
 app.include_router(user_router)
 app.include_router(note_router)
+app.include_router(organization_router)
 
 
 @app.get("/")
