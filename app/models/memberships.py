@@ -7,7 +7,9 @@ class Memberships(models.Model):
     id = fields.IntField(pk=True)
     org_id = fields.ForeignKeyField("models.Organizations", related_name="memberships")
     user_id = fields.ForeignKeyField("models.Users", related_name="memberships")
-
+    created_at = fields.DatetimeField(auto_now_add=True)
+    modified_at = fields.DatetimeField(auto_now=True)
+    
     class Meta:
         table = "memberships"
         unique_together = (("org_id", "user_id"),)  # Unique constraint for orgId and userId
