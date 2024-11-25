@@ -1,3 +1,4 @@
+# Jenkinsfile
 pipeline {
     agent any
     
@@ -7,12 +8,21 @@ pipeline {
         GCP_VM_IP = credentials('gcp-vm-ip')
         GCP_VM_USER = credentials('gcp-vm-user')
         SSH_KEY = credentials('gcp-ssh-key')
-        DB_PASSWORD = credentials('db-password')
+        GITHUB_TOKEN = credentials('github-token')
+    }
+    
+    triggers {
+        // Poll SCM setiap menit untuk perubahan
+        pollSCM('* * * * *')
+        // Webhook trigger
+        githubPush()
     }
     
     stages {
         stage('Checkout') {
             steps {
+                // Clean workspace sebelum checkout
+                cleanWs()
                 checkout scm
             }
         }
@@ -34,7 +44,6 @@ pipeline {
                 script {
                     sh '''
                         docker-compose -f docker/docker-compose.yml build
-                        # If using private registry, add docker push commands here
                     '''
                 }
             }
@@ -43,33 +52,13 @@ pipeline {
         stage('Deploy to GCP VM') {
             steps {
                 script {
-                    // Create deployment directory
-                    sh """
-                        ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${GCP_VM_USER}@${GCP_VM_IP} '
-                            mkdir -p ~/fastapi-app/docker
-                        '
-                    """
-                    
-                    // Copy necessary files
-                    sh """
-                        scp -i ${SSH_KEY} -o StrictHostKeyChecking=no \
-                            docker/docker-compose.yml \
-                            docker/Dockerfile \
-                            ${GCP_VM_USER}@${GCP_VM_IP}:/home/${GCP_VM_USER}/fastapi-app/docker/
-                            
-                        scp -i ${SSH_KEY} -o StrictHostKeyChecking=no \
-                            -r app \
-                            main.py \
-                            requirements.txt \
-                            .env \
-                            ${GCP_VM_USER}@${GCP_VM_IP}:/home/${GCP_VM_USER}/fastapi-app/
-                    """
-                    
-                    // Deploy using docker-compose
+                    // Update source code di VM
                     sh """
                         ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${GCP_VM_USER}@${GCP_VM_IP} '
                             cd /home/${GCP_VM_USER}/fastapi-app && \
+                            git pull origin main && \
                             docker-compose -f docker/docker-compose.yml down && \
+                            docker-compose -f docker/docker-compose.yml build --no-cache && \
                             docker-compose -f docker/docker-compose.yml up -d
                         '
                     """
@@ -81,9 +70,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                        # Wait for services to be ready
                         sleep 30
-                        # Check web service
                         curl -f http://${GCP_VM_IP}:8000/health || exit 1
                     """
                 }
@@ -92,16 +79,29 @@ pipeline {
     }
     
     post {
-        always {
-            cleanWs()
-            sh 'docker system prune -f'
-        }
         success {
-            echo 'Deployment successful!'
+            script {
+                // Update GitHub deployment status
+                sh """
+                    curl -H "Authorization: token ${GITHUB_TOKEN}" \
+                        -H "Accept: application/vnd.github.v3+json" \
+                        -X POST \
+                        -d '{"state": "success", "environment": "production"}' \
+                        https://api.github.com/repos/OWNER/REPO/deployments/latest/statuses
+                """
+            }
         }
         failure {
-            echo 'Deployment failed!'
-            // Add notification steps here (email, Slack, etc.)
+            script {
+                // Update GitHub deployment status
+                sh """
+                    curl -H "Authorization: token ${GITHUB_TOKEN}" \
+                        -H "Accept: application/vnd.github.v3+json" \
+                        -X POST \
+                        -d '{"state": "failure", "environment": "production"}' \
+                        https://api.github.com/repos/OWNER/REPO/deployments/latest/statuses
+                """
+            }
         }
     }
 }
