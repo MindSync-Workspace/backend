@@ -1,77 +1,98 @@
 from fastapi import HTTPException, status
 from app.models.notes import Notes
-from app.models.users import Users
-from app.schemas.users import UserCreate, UserUpdate
-from passlib.hash import bcrypt
+from app.schemas.notes import NoteCreate, NoteUpdate
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.utils.response import create_response
+import logging
 
 
-User_Pydantic = pydantic_model_creator(Notes, name="Note", exclude=("password",))
+NotePydantic = pydantic_model_creator(Notes, name="Note")
 
 
 class NoteController:
-    async def create_user(self, user_data: UserCreate):
-        user_dict = user_data.dict()
-        user_dict["password"] = bcrypt.hash(user_dict["password"])
-        user_obj = await Notes.create(**user_dict)
-        user_data = await User_Pydantic.from_tortoise_orm(user_obj)
-        return create_response(
-            status_code=status.HTTP_201_CREATED,
-            message="User created successfully",
-            data=user_data.dict(),
-        )
+    async def create_note(self, note_data: NoteCreate):
+        try:
+            note_dict = note_data.model_dump()
+            note_obj = await Notes.create(**note_dict)
+            note_data = await NotePydantic.from_tortoise_orm(note_obj)
+            return create_response(
+                status_code=status.HTTP_201_CREATED,
+                message="Note berhasil dibuat",
+                data=note_data.model_dump(),
+            )
+        except Exception as e:
+            logging.error(f"Error saat membuat note: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=["Terjadi error saat membuat notes", str(e)],
+            )
 
-    async def get_users(self):
-        users = await User_Pydantic.from_queryset(Users.all())
-        users_data = [user.dict() for user in users]
+    async def get_notes_by_user_id(self, user_id: int):
+        try:
+            notes_query = Notes.filter(user_id=user_id)
+            # notes_query = notes_query.prefetch_related("user")
+            notes_data = await NotePydantic.from_queryset(notes_query)
+            notes_dict = [note.model_dump() for note in notes_data]
 
-        return create_response(
-            status_code=status.HTTP_200_OK,
-            message="Users fetched successfully",
-            data=users_data,
-        )
+            return create_response(
+                status_code=status.HTTP_200_OK,
+                message="Berhasil mendapatkan notes",
+                data=notes_dict,
+            )
+        except Exception as e:
+            logging.error(
+                f"Terjadi error saat mengambil data notes dengan User ID {user_id}: {e}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=["Terjadi error saat mengambi data notes", str(e)],
+            )
 
-    async def get_user(self, user_id: int):
-        user = await Users.filter(id=user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+    async def update_note(self, note_id: int, note_data: NoteUpdate):
+        try:
+            note = await Notes.get_or_none(id=note_id)
+            if not note:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=[f"Note dengan ID {note_id} tidak ditemukan", str(e)],
+                )
 
-        user_data = await User_Pydantic.from_tortoise_orm(user)
+            await Notes.filter(id=note_id).update(**note_data.model_dump())
 
-        return create_response(
-            status_code=status.HTTP_200_OK,
-            message="User fetched successfully",
-            data=user_data.dict(),
-        )
+            updated_note = await NotePydantic.from_tortoise_orm(
+                await Notes.get(id=note_id)
+            )
 
-    async def update_user(self, user_id: int, user_data: UserUpdate):
-        user = await Users.filter(id=user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            return create_response(
+                status_code=status.HTTP_200_OK,
+                message="Note berhasil diupdate",
+                data=updated_note.model_dump(),
+            )
+        except Exception as e:
+            logging.error(
+                f"Terjadi error saat memperbarui note dengan ID {note_id}: {e}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=["Terjadi error saat memperbarui note", str(e)],
+            )
 
-        update_data = user_data.dict(exclude_unset=True)
-        if "password" in update_data:
-            update_data["password"] = bcrypt.hash(update_data["password"])
+    async def delete_note(self, note_id: int):
+        try:
+            note = await Notes.filter(id=note_id).first()
+            if not note:
+                raise HTTPException(status_code=404, detail=["Note tidak ditemukan"])
 
-        await Users.filter(id=user_id).update(**update_data)
-        updated_user = await User_Pydantic.from_tortoise_orm(
-            await Users.get(id=user_id)
-        )
+            await note.delete()
 
-        return create_response(
-            status_code=status.HTTP_200_OK,
-            message="User updated successfully",
-            data=updated_user.dict(),
-        )
-
-    async def delete_user(self, user_id: int):
-        user = await Users.filter(id=user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        await user.delete()
-
-        return create_response(
-            status_code=status.HTTP_200_OK, message="User deleted successfully", data={}
-        )
+            return create_response(
+                status_code=status.HTTP_200_OK,
+                message="Berhasil menghapus note",
+                data={},
+            )
+        except Exception as e:
+            logging.error(f"Terjadi error saat menghapus note dengan ID {note_id}: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=["Terjadi error saat menghapus note", str(e)],
+            )

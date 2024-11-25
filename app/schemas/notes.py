@@ -4,20 +4,20 @@ from datetime import datetime
 
 
 class NoteCreate(BaseModel):
-    userId: int
+    user_id: int
     text: str
 
 
 class NoteUpdate(BaseModel):
-    userId: int
-    text: Optional[str] = None
+    user_id: int
+    text: str
 
 
 class NoteResponse(BaseModel):
     id: int
-    text = str
-    user_id = str
+    text: str
+    user_id: str
     embedding: Optional[List[float]] = None
-    tokenIdentifier: Optional[str] = None
+    token_identifier: Optional[str] = None
     created_at: datetime
     modified_at: datetime
