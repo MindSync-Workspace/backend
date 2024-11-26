@@ -9,16 +9,23 @@ class DocumentCreate(BaseModel):
     description: str
 
 
-class NoteUpdate(BaseModel):
-    user_id: int
-    text: str
-
-
-class NoteResponse(BaseModel):
+class DocumentUpdate(BaseModel):
     id: int
-    text: str
-    user_id: str
-    embedding: Optional[List[float]] = None
+    user_id: int
+    org_id: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
     token_identifier: Optional[str] = None
-    created_at: datetime
-    modified_at: datetime
+    embedding: Optional[str] = None
+    file_id: Optional[str] = None
+
+
+class DocumentResponse(BaseModel):
+    id: int
+    user_id: int
+    org_id: str
+    title: str
+    description: str
+    token_identifier: str
+    embedding: str
+    file_id: str
