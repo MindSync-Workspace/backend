@@ -38,9 +38,9 @@ class NoteController:
             note_obj = await Notes.create(**note_dict)
             logging.info(f"Note dibuat dengan ID: {note_obj.id}")
 
-            # add_note_to_collection(
-            #     note_id=str(note_obj.id), text=note_obj.text, metadata=metadata
-            # )
+            add_note_to_collection(
+                note_id=str(note_obj.id), text=note_obj.text, metadata=metadata
+            )
 
             note_data = await NotePydantic.from_tortoise_orm(note_obj)
 

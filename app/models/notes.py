@@ -17,7 +17,6 @@ class Notes(models.Model):
 
     class Meta:
         table = "notes"
-        unique_together = (("org", "user"),)
 
     def __str__(self):
         return self.text
