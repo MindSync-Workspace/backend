@@ -36,6 +36,23 @@ async def get_notes_by_user_id(user_id: int):
     return await note_controller.get_notes_by_user_id(user_id)
 
 
+@router.get(
+    "/users/{user_id}/organizations/{organizations_id}",
+    response_model=List[NoteResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get all notes by user ID and organization ID",
+)
+async def get_notes_by_user_id_and_org_id(user_id: int, organizations_id: int):
+    """
+    Fetch all notes for a given user ID and organization ID.
+    - **user_id**: The unique user ID.
+    - **organizations_id**: The unique organization ID.
+    """
+    return await note_controller.get_notes_by_user_id_and_org_id(
+        user_id, organizations_id
+    )
+
+
 @router.put(
     "/{note_id}",
     response_model=NoteResponse,

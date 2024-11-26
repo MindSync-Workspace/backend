@@ -17,7 +17,6 @@ class NoteController:
     async def create_note(self, note_data: NoteCreate):
         try:
             note_dict = note_data.model_dump()
-            print(note_dict)
             metadata = {
                 "user_id": note_dict["user_id"],
             }
@@ -61,7 +60,28 @@ class NoteController:
 
     async def get_notes_by_user_id(self, user_id: int):
         try:
-            notes_query = Notes.filter(user_id=user_id)
+            notes_query = Notes.filter(user_id=user_id, org_id=None)
+            # notes_query = notes_query.prefetch_related("user")
+            notes_data = await NotePydantic.from_queryset(notes_query)
+            notes_dict = [note.model_dump() for note in notes_data]
+
+            return create_response(
+                status_code=status.HTTP_200_OK,
+                message="Berhasil mendapatkan notes",
+                data=notes_dict,
+            )
+        except Exception as e:
+            logging.error(
+                f"Terjadi error saat mengambil data notes dengan User ID {user_id}: {e}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=["Terjadi error saat mengambi data notes", str(e)],
+            )
+
+    async def get_notes_by_user_id_and_org_id(self, user_id: int, org_id: int):
+        try:
+            notes_query = Notes.filter(user_id=user_id, org_id=org_id)
             # notes_query = notes_query.prefetch_related("user")
             notes_data = await NotePydantic.from_queryset(notes_query)
             notes_dict = [note.model_dump() for note in notes_data]
