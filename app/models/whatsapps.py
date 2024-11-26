@@ -5,8 +5,8 @@ from tortoise.contrib.pydantic import pydantic_model_creator
 
 class Whatsapps(models.Model):
     id = fields.IntField(pk=True)
-    text = fields.CharField(max_length=255)
-    secret_key = fields.CharField(max_length=255)
+    number = fields.CharField(max_length=20, unique=True, null=True, default=None)
+    secret_key = fields.CharField(max_length=255, unique=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
     user = fields.ForeignKeyField(

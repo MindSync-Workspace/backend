@@ -6,7 +6,8 @@ from app.routes.users import router as user_router
 from app.routes.notes import router as note_router
 from app.routes.organizations import router as organization_router
 from app.routes.memberships import router as membership_router
-from app.routes.chats import router as chat_router  # Import chat router
+from app.routes.chats import router as chat_router
+from app.routes.whatsapps import router as whatsapp_router
 
 app = FastAPI(title="API for Mindsync", version="1.0.0")
 
@@ -36,6 +37,7 @@ register_tortoise(
             "app.models.memberships",
             "app.models.documents",
             "app.models.chats",
+            "app.models.whatsapps",
         ]
     },
     # generate_schemas=True,
@@ -46,19 +48,12 @@ register_tortoise(
 api_router = APIRouter(prefix="/api")
 
 # Include the sub-routers with their own prefix
-<<<<<<< HEAD
-api_router.include_router(user_router,)
-api_router.include_router(note_router,)
-api_router.include_router(organization_router)
-api_router.include_router(membership_router)
-api_router.include_router(chat_router)  # Add chats router here
-=======
 api_router.include_router(user_router)
 api_router.include_router(note_router)
 api_router.include_router(organization_router)
 api_router.include_router(membership_router)
 api_router.include_router(chat_router)
->>>>>>> a75470bd42f730cea281699a8122b828ebe2bae5
+api_router.include_router(whatsapp_router)
 
 # Include the main API router in the app
 app.include_router(api_router)
