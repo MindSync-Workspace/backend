@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from tortoise.contrib.fastapi import register_tortoise
 import os
 from fastapi.middleware.cors import CORSMiddleware
@@ -51,10 +51,14 @@ register_tortoise(
     add_exception_handlers=True,
 )
 
-app.include_router(user_router)
-app.include_router(note_router)
-app.include_router(organization_router)
-app.include_router(membership_router)
+# Create a main router with '/api' prefix
+api_router = APIRouter(prefix="/api")
+
+# Include your individual routers under the main API router
+api_router.include_router(user_router, prefix="/user")
+api_router.include_router(note_router, prefix="/note")
+api_router.include_router(organization_router, prefix="/organization")
+api_router.include_router(membership_router, prefix="/membership")
 
 
 @app.get("/")
