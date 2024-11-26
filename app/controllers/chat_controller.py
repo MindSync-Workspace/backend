@@ -38,6 +38,7 @@ class ChatController:
                 message="Berhasil mendapatkan chats",
                 data=chats_dict,
             )
+        
         except Exception as e:
             logging.error(
                 f"Terjadi error saat mengambil data chats dengan Document ID {document_id}: {e}"
@@ -67,6 +68,10 @@ class ChatController:
                 message="Chat berhasil diupdate",
                 data=updated_chat.model_dump(),
             )
+        
+        except HTTPException as http_exc:
+            raise http_exc
+        
         except Exception as e:
             logging.error(
                 f"Terjadi error saat memperbarui chat dengan ID {chat_id}: {e}"
@@ -92,6 +97,10 @@ class ChatController:
                 message="Berhasil menghapus chat",
                 data={},
             )
+        
+        except HTTPException as http_exc:
+            raise http_exc
+        
         except Exception as e:
             logging.error(f"Terjadi error saat menghapus chat dengan ID {chat_id}: {e}")
             raise HTTPException(
