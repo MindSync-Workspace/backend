@@ -5,6 +5,8 @@ from datetime import datetime
 
 class ChatCreate(BaseModel):
     document_id: int
+    user_id: int
+    org_id: int
     token_identifier: str
     is_human: bool
     text: str
