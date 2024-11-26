@@ -54,7 +54,13 @@ class NoteController:
             if not note:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=[f"Note dengan ID {note_id} tidak ditemukan", str(e)],
+                    detail=[f"Note dengan ID {note_id} tidak ditemukan"],
+                )
+
+            if note_data.user_id != note.user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=["Anda tidak memiliki akses untuk mengupdate note ini"],
                 )
 
             await Notes.filter(id=note_id).update(**note_data.model_dump())
@@ -68,6 +74,10 @@ class NoteController:
                 message="Note berhasil diupdate",
                 data=updated_note.model_dump(),
             )
+
+        except HTTPException as http_exc:
+            raise http_exc
+
         except Exception as e:
             logging.error(
                 f"Terjadi error saat memperbarui note dengan ID {note_id}: {e}"
@@ -90,6 +100,9 @@ class NoteController:
                 message="Berhasil menghapus note",
                 data={},
             )
+        except HTTPException as http_exc:
+            raise http_exc
+
         except Exception as e:
             logging.error(f"Terjadi error saat menghapus note dengan ID {note_id}: {e}")
             raise HTTPException(
