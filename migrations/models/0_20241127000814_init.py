@@ -27,8 +27,7 @@ CREATE TABLE IF NOT EXISTS "notes" (
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "modified_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "org_id" INT REFERENCES "organizations" ("id") ON DELETE CASCADE,
-    "user_id" INT NOT NULL REFERENCES "users" ("id") ON DELETE CASCADE,
-    CONSTRAINT "uid_notes_org_id_2a0802" UNIQUE ("org_id", "user_id")
+    "user_id" INT NOT NULL REFERENCES "users" ("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "memberships" (
     "id" SERIAL NOT NULL PRIMARY KEY,
@@ -53,7 +52,10 @@ CREATE TABLE IF NOT EXISTS "chats" (
     "token_identifier" VARCHAR(255) NOT NULL,
     "is_human" BOOL NOT NULL,
     "text" VARCHAR(255) NOT NULL,
-    "document_id" INT NOT NULL REFERENCES "documents" ("id") ON DELETE CASCADE
+    "document_id" INT NOT NULL REFERENCES "documents" ("id") ON DELETE CASCADE,
+    "org_id" INT NOT NULL REFERENCES "organizations" ("id") ON DELETE CASCADE,
+    "user_id" INT NOT NULL REFERENCES "users" ("id") ON DELETE CASCADE,
+    CONSTRAINT "uid_chats_org_id_b0edd3" UNIQUE ("org_id", "user_id", "document_id")
 );
 CREATE TABLE IF NOT EXISTS "aerich" (
     "id" SERIAL NOT NULL PRIMARY KEY,
