@@ -9,8 +9,8 @@ class Organizations(models.Model):
     description = fields.TextField(null=True)  # Deskripsi organisasi
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
-    # Todo: buat start date dan end date subscriptionnya,ambil jeda satu bulan,update di controllernya juga
-
+    start_date = fields.DatetimeField(null=True)
+    end_date = fields.DatetimeField(null=True)
     class Meta:
         table = "organizations"
 
