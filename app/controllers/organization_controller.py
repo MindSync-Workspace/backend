@@ -4,6 +4,7 @@ from app.schemas.organizations import OrganizationCreate, OrganizationUpdate
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.utils.response import create_response
 import logging
+import datetime
 
 
 OrganizationPydantic = pydantic_model_creator(Organizations, name="Organization")
@@ -13,6 +14,9 @@ class OrganizationController:
     async def create_organization(self, organization_data: OrganizationCreate):
         try:
             organization_dict = organization_data.model_dump()
+            now = datetime.datetime.utcnow()
+            organization_dict['start_date'] = now
+            organization_dict['end_date'] = now + datetime.timedelta(days=30)
             organization_obj = await Organizations.create(**organization_dict)
             organization_data = await OrganizationPydantic.from_tortoise_orm(organization_obj)
             return create_response(
