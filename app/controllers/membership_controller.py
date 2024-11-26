@@ -36,6 +36,7 @@ class MembershipController:
                 message="Berhasil mendapatkan memberships",
                 data=memberships_dict,
             )
+        
         except Exception as e:
             logging.error(
                 f"Terjadi error saat mengambil data memberships dengan User ID {user_id}: {e}"
@@ -65,6 +66,9 @@ class MembershipController:
                 message="Membership berhasil diupdate",
                 data=updated_membership.model_dump(),
             )
+        except HTTPException as http_exc:
+            raise http_exc
+        
         except Exception as e:
             logging.error(
                 f"Terjadi error saat memperbarui membership dengan ID {membership_id}: {e}"
@@ -86,7 +90,10 @@ class MembershipController:
                 status_code=status.HTTP_200_OK,
                 message="Berhasil menghapus membership",
                 data={},
-            )
+            ) 
+        except HTTPException as http_exc:
+            raise http_exc
+        
         except Exception as e:
             logging.error(f"Terjadi error saat menghapus membership dengan ID {membership_id}: {e}")
             raise HTTPException(

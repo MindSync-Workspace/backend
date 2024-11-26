@@ -38,7 +38,7 @@ register_tortoise(
             "app.models.chats",
         ]
     },
-    generate_schemas=True,
+    # generate_schemas=True,
     add_exception_handlers=True,
 )
 
@@ -46,14 +46,23 @@ register_tortoise(
 api_router = APIRouter(prefix="/api")
 
 # Include the sub-routers with their own prefix
+<<<<<<< HEAD
 api_router.include_router(user_router,)
 api_router.include_router(note_router,)
 api_router.include_router(organization_router)
 api_router.include_router(membership_router)
 api_router.include_router(chat_router)  # Add chats router here
+=======
+api_router.include_router(user_router)
+api_router.include_router(note_router)
+api_router.include_router(organization_router)
+api_router.include_router(membership_router)
+api_router.include_router(chat_router)
+>>>>>>> a75470bd42f730cea281699a8122b828ebe2bae5
 
 # Include the main API router in the app
 app.include_router(api_router)
+
 
 @app.get("/")
 async def root():

@@ -65,6 +65,10 @@ class OrganizationController:
                 message="Organization berhasil diupdate",
                 data=updated_organization.model_dump(),
             )
+        
+        except HTTPException as http_exc:
+            raise http_exc
+        
         except Exception as e:
             logging.error(f"Terjadi error saat memperbarui organization dengan ID {organization_id}: {e}")
             raise HTTPException(
@@ -85,6 +89,9 @@ class OrganizationController:
                 message="Berhasil menghapus organization",
                 data={},
             )
+        except HTTPException as http_exc:
+            raise http_exc
+        
         except Exception as e:
             logging.error(f"Terjadi error saat menghapus organization dengan ID {organization_id}: {e}")
             raise HTTPException(

@@ -14,7 +14,7 @@ class Chats(models.Model):
 
     class Meta:
         table = "chats"
-        unique_together = (("org", "user","document"),) 
+        unique_together = (("org", "user", "document"),)
 
     def __str__(self):
         return f"Chat {self.id} for Document {self.document_id}"
