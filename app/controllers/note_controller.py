@@ -4,22 +4,54 @@ from app.schemas.notes import NoteCreate, NoteUpdate
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.utils.response import create_response
 import logging
-
+from tortoise.transactions import in_transaction
+from app.utils.validate_org_access import validate_org_access
+from app.utils.embed import generate_embedding
+from app.utils.chroma import add_note_to_collection
 
 NotePydantic = pydantic_model_creator(Notes, name="Note")
 
 
 class NoteController:
+
     async def create_note(self, note_data: NoteCreate):
         try:
             note_dict = note_data.model_dump()
+            print(note_dict)
+            metadata = {
+                "user_id": note_dict["user_id"],
+            }
+
+            if "org_id" in note_dict and note_dict["org_id"] is not None:
+                metadata["org_id"] = note_dict["org_id"]
+                has_access = await validate_org_access(
+                    note_data.org_id, note_data.user_id
+                )
+                if not has_access:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail=[
+                            "Anda tidak memiliki akses untuk membuat note di organisasi ini."
+                        ],
+                    )
+
             note_obj = await Notes.create(**note_dict)
+            logging.info(f"Note dibuat dengan ID: {note_obj.id}")
+
+            # add_note_to_collection(
+            #     note_id=str(note_obj.id), text=note_obj.text, metadata=metadata
+            # )
+
             note_data = await NotePydantic.from_tortoise_orm(note_obj)
+
             return create_response(
                 status_code=status.HTTP_201_CREATED,
                 message="Note berhasil dibuat",
                 data=note_data.model_dump(),
             )
+        except HTTPException as http_exc:
+            raise http_exc
+
         except Exception as e:
             logging.error(f"Error saat membuat note: {e}")
             raise HTTPException(

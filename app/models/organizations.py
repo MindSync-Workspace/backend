@@ -9,6 +9,7 @@ class Organizations(models.Model):
     description = fields.TextField(null=True)  # Deskripsi organisasi
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
+    # Todo: buat start date dan end date subscriptionnya,ambil jeda satu bulan,update di controllernya juga
 
     class Meta:
         table = "organizations"
@@ -19,5 +20,7 @@ class Organizations(models.Model):
 
 # Create Pydantic models for API
 OrganizationPydantic = pydantic_model_creator(Organizations, name="Organization")
-OrganizationInPydantic = pydantic_model_creator(Organizations, name="OrganizationIn", exclude_readonly=True)
+OrganizationInPydantic = pydantic_model_creator(
+    Organizations, name="OrganizationIn", exclude_readonly=True
+)
 OrganizationOutPydantic = pydantic_model_creator(Organizations, name="OrganizationOut")

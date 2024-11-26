@@ -11,9 +11,13 @@ class Notes(models.Model):
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
     user = fields.ForeignKeyField("models.Users", related_name="notes")
+    org = fields.ForeignKeyField(
+        "models.Organizations", related_name="notes", null=True, default=None
+    )
 
     class Meta:
         table = "notes"
+        unique_together = (("org", "user"),)
 
     def __str__(self):
         return self.text
