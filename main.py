@@ -46,11 +46,11 @@ register_tortoise(
 api_router = APIRouter(prefix="/api")
 
 # Include the sub-routers with their own prefix
-api_router.include_router(user_router, prefix="/user")
-api_router.include_router(note_router, prefix="/note")
-api_router.include_router(organization_router, prefix="/organization")
-api_router.include_router(membership_router, prefix="/membership")
-api_router.include_router(chat_router, prefix="/chats")  # Add chats router here
+api_router.include_router(user_router,)
+api_router.include_router(note_router,)
+api_router.include_router(organization_router)
+api_router.include_router(membership_router)
+api_router.include_router(chat_router)  # Add chats router here
 
 # Include the main API router in the app
 app.include_router(api_router)
