@@ -25,6 +25,7 @@ class Users(models.Model):
 UserPydantic = pydantic_model_creator(Users, name="User")
 UserInPydantic = pydantic_model_creator(Users, name="UserIn", exclude_readonly=True)
 UserOutPydantic = pydantic_model_creator(
+<<<<<<< Updated upstream
     Users, name="UserOut", exclude=("password",)  # Don't expose password in responses
 )
 
@@ -38,3 +39,9 @@ async def init():
 
     # Generate schemas
     await Tortoise.generate_schemas()
+=======
+    Users, 
+    name="UserOut",
+    exclude=("password",)  # Don't expose password in responses
+)
+>>>>>>> Stashed changes

@@ -1,15 +1,15 @@
 from fastapi import HTTPException, status
 from app.models.notes import Notes
+from app.models.whatsapps import Whatsapps
 from app.schemas.notes import NoteCreate, NoteUpdate
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.utils.response import create_response
 import logging
-from tortoise.transactions import in_transaction
 from app.utils.validate_org_access import validate_org_access
-from app.utils.embed import generate_embedding
 from app.utils.chroma import add_note_to_collection
 
 NotePydantic = pydantic_model_creator(Notes, name="Note")
+WhatsappPydantic = pydantic_model_creator(Whatsapps, name="Whatsapp")
 
 
 class NoteController:
@@ -17,7 +17,6 @@ class NoteController:
     async def create_note(self, note_data: NoteCreate):
         try:
             note_dict = note_data.model_dump()
-            print(note_dict)
             metadata = {
                 "user_id": note_dict["user_id"],
             }
@@ -61,7 +60,28 @@ class NoteController:
 
     async def get_notes_by_user_id(self, user_id: int):
         try:
-            notes_query = Notes.filter(user_id=user_id)
+            notes_query = Notes.filter(user_id=user_id, org_id=None)
+            # notes_query = notes_query.prefetch_related("user")
+            notes_data = await NotePydantic.from_queryset(notes_query)
+            notes_dict = [note.model_dump() for note in notes_data]
+
+            return create_response(
+                status_code=status.HTTP_200_OK,
+                message="Berhasil mendapatkan notes",
+                data=notes_dict,
+            )
+        except Exception as e:
+            logging.error(
+                f"Terjadi error saat mengambil data notes dengan User ID {user_id}: {e}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=["Terjadi error saat mengambi data notes", str(e)],
+            )
+
+    async def get_notes_by_user_id_and_org_id(self, user_id: int, org_id: int):
+        try:
+            notes_query = Notes.filter(user_id=user_id, org_id=org_id)
             # notes_query = notes_query.prefetch_related("user")
             notes_data = await NotePydantic.from_queryset(notes_query)
             notes_dict = [note.model_dump() for note in notes_data]
@@ -122,6 +142,7 @@ class NoteController:
     async def delete_note(self, note_id: int):
         try:
             note = await Notes.filter(id=note_id).first()
+
             if not note:
                 raise HTTPException(status_code=404, detail=["Note tidak ditemukan"])
 
@@ -141,3 +162,38 @@ class NoteController:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=["Terjadi error saat menghapus note", str(e)],
             )
+
+
+async def get_notes_by_whatsapp_number(self, whatsapp_number: str):
+    """
+    Mengambil semua catatan berdasarkan nomor WhatsApp.
+    - **whatsapp_number**: Nomor WhatsApp yang terhubung dengan pengguna.
+    """
+    try:
+        whatsapp = await Whatsapps.get_or_none(number=whatsapp_number)
+
+        if not whatsapp:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=["Nomor WhatsApp tidak ditemukan"],
+            )
+
+        user_id = whatsapp.user_id
+
+        notes_query = Notes.filter(user_id=user_id)
+        notes_data = await NotePydantic.from_queryset(notes_query)
+        notes_dict = [note.model_dump() for note in notes_data]
+
+        return create_response(
+            status_code=status.HTTP_200_OK,
+            message="Berhasil mendapatkan notes",
+            data=notes_dict,
+        )
+    except Exception as e:
+        logging.error(
+            f"Terjadi error saat mengambil notes untuk nomor WhatsApp {whatsapp_number}: {e}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=["Terjadi error saat mengambil notes", str(e)],
+        )

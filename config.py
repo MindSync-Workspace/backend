@@ -12,6 +12,7 @@ DATABASE_CONFIG = {
                 "app.models.memberships",
                 "app.models.documents",
                 "app.models.chats",
+                "app.models.whatsapps",
                 "aerich.models",
             ],  # Tambahkan aerich.models
             "default_connection": "default",

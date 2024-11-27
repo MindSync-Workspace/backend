@@ -18,6 +18,8 @@ async def create_organization(organization_data: OrganizationCreate):
     Create a new organization in the database.
     - **name**: The name of the organization.
     - **description**: The description of the organization.
+    - **start_date**: The start date of the subscription.
+    - **end_date**: The end date of the subscription.
     """
     return await organization_controller.create_organization(organization_data)
 
@@ -47,6 +49,8 @@ async def update_organization(organization_id: int, organization_data: Organizat
     - **organization_id**: The unique ID of the organization to update.
     - **name**: The updated name of the organization.
     - **description**: The updated description of the organization.
+    - **start_date**: The updated start date of the subscription.
+    - **end_date**: The updated end date of the subscription.
     """
     return await organization_controller.update_organization(organization_id, organization_data)
 

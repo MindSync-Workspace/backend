@@ -4,6 +4,7 @@ from app.schemas.users import UserCreate, UserUpdate
 from passlib.hash import bcrypt
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.utils.response import create_response
+from app.controllers.whatsapp_controller import WhatsappController
 import logging
 
 UserPydantic = pydantic_model_creator(Users, name="User", exclude=("password",))
@@ -30,6 +31,12 @@ class UserController:
             user_dict["password"] = bcrypt.hash(user_dict["password"])
             user_obj = await Users.create(**user_dict)
             user_data = await UserPydantic.from_tortoise_orm(user_obj)
+
+            await WhatsappController().create_whatsapp(
+                {
+                    "user_id": user_data.id,
+                }
+            )
 
             return create_response(
                 status_code=status.HTTP_201_CREATED,
