@@ -3,9 +3,26 @@ from typing import Optional, List
 from datetime import datetime
 
 
-class NoteCreate(BaseModel):
+class MetaResponse(BaseModel):
+    status: int
+    message: str
+
+
+class NoteData(BaseModel):
+    id: int
+    text: str
     user_id: int
     org_id: Optional[int] = None
+    embedding: Optional[List[float]] = None
+    token_identifier: Optional[str] = None
+    created_at: datetime
+    modified_at: datetime
+
+
+class NoteCreate(BaseModel):
+    user_id: Optional[int] = None
+    org_id: Optional[int] = None
+    number: Optional[str] = None
     text: str
 
 
@@ -16,11 +33,10 @@ class NoteUpdate(BaseModel):
 
 
 class NoteResponse(BaseModel):
-    id: int
-    text: str
-    user_id: str
-    org_id: Optional[int] = None
-    embedding: Optional[List[float]] = None
-    token_identifier: Optional[str] = None
-    created_at: datetime
-    modified_at: datetime
+    meta: MetaResponse
+    data: NoteData
+
+
+class NotesResponse(BaseModel):
+    meta: MetaResponse
+    data: List[NoteData]

@@ -15,6 +15,7 @@ async def add_note_to_collection(note_id: str, text: str, metadata: dict = None)
         metadatas=[metadata or {}],
         embeddings=[],
     )
+    ## TODO: 1 collection 1 docs (bcs text splitting)
 
 
 async def query_similar(embedding: list[float], n_results: int = 5):
