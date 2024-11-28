@@ -39,7 +39,7 @@ async def get_notes_by_user_id(user_id: int):
 
 @router.get(
     "/users/{user_id}/organizations/{organizations_id}",
-    response_model=List[NotesResponse],
+    response_model=NotesResponse,
     status_code=status.HTTP_200_OK,
     summary="Get all notes by user ID and organization ID",
 )
@@ -97,7 +97,7 @@ async def create_note_whatsapp(note_data: NoteCreate):
 
 @router.get(
     "/whatsapps/{whatsapp_number}",
-    response_model=List[NoteResponse],
+    response_model=NotesResponse,
     status_code=status.HTTP_200_OK,
     summary="Get all notes by Whatsapp number (**BOT**)",
 )

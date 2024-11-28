@@ -1,6 +1,11 @@
 from fastapi import APIRouter, status
 from app.controllers.organization_controller import OrganizationController
-from app.schemas.organizations import OrganizationCreate, OrganizationResponse, OrganizationUpdate
+from app.schemas.organizations import (
+    OrganizationCreate,
+    OrganizationResponse,
+    OrganizationUpdate,
+    OrganizationsResponse,
+)
 from typing import List
 
 router = APIRouter(prefix="/organizations", tags=["Organizations"])
@@ -26,7 +31,7 @@ async def create_organization(organization_data: OrganizationCreate):
 
 @router.get(
     "",
-    response_model=List[OrganizationResponse],
+    response_model=OrganizationsResponse,
     status_code=status.HTTP_200_OK,
     summary="Get all organizations",
 )
@@ -43,7 +48,9 @@ async def get_organizations():
     status_code=status.HTTP_200_OK,
     summary="Update an organization",
 )
-async def update_organization(organization_id: int, organization_data: OrganizationUpdate):
+async def update_organization(
+    organization_id: int, organization_data: OrganizationUpdate
+):
     """
     Update a specific organization by its ID.
     - **organization_id**: The unique ID of the organization to update.
@@ -52,10 +59,16 @@ async def update_organization(organization_id: int, organization_data: Organizat
     - **start_date**: The updated start date of the subscription.
     - **end_date**: The updated end date of the subscription.
     """
-    return await organization_controller.update_organization(organization_id, organization_data)
+    return await organization_controller.update_organization(
+        organization_id, organization_data
+    )
 
 
-@router.delete("/{organization_id}", status_code=status.HTTP_200_OK, summary="Delete an organization")
+@router.delete(
+    "/{organization_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete an organization",
+)
 async def delete_organization(organization_id: int):
     """
     Delete an organization by its ID.
