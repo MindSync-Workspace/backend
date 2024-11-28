@@ -188,7 +188,6 @@ class NoteController:
             )
 
     async def create_note_whatsapp(self, note_data: NoteCreate):
-
         try:
             user_id = await get_user_id_by_whatsapp_number(note_data.number)
             note_data.user_id = user_id

@@ -1,6 +1,21 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
+
+
+class MetaResponse(BaseModel):
+    status: int
+    message: str
+
+
+class ChatData(BaseModel):
+    id: int
+    document_id: int
+    token_identifier: str
+    is_human: bool
+    text: str
+    created_at: datetime
+    modified_at: datetime
 
 
 class ChatCreate(BaseModel):
@@ -19,10 +34,10 @@ class ChatUpdate(BaseModel):
 
 
 class ChatResponse(BaseModel):
-    id: int
-    document_id: int
-    token_identifier: str
-    is_human: bool
-    text: str
-    created_at: datetime
-    modified_at: datetime
+    meta: MetaResponse
+    data: ChatData
+
+
+class ChatsResponse(BaseModel):
+    meta: MetaResponse
+    data: List[ChatData]
