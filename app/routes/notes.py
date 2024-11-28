@@ -1,6 +1,12 @@
 from fastapi import APIRouter, status, Header
 from app.controllers.note_controller import NoteController
-from app.schemas.notes import NoteCreate, NoteResponse, NoteUpdate, NotesResponse
+from app.schemas.notes import (
+    NoteCreate,
+    NoteResponse,
+    NoteUpdate,
+    NotesResponse,
+    NoteSearch,
+)
 from typing import List
 
 router = APIRouter(prefix="/notes", tags=["Notes"])
@@ -24,6 +30,20 @@ async def create_note(note_data: NoteCreate):
 
 
 @router.get(
+    "/{note_id}",
+    response_model=List[NotesResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get single note by its ID",
+)
+async def get_note_by_id(note_id: int):
+    """
+    Fetch all notes for a given note ID.
+    - **note_id**: The unique note ID.
+    """
+    return await note_controller.get_note(note_id)
+
+
+@router.get(
     "/users/{user_id}",
     response_model=List[NotesResponse],
     status_code=status.HTTP_200_OK,
@@ -35,6 +55,20 @@ async def get_notes_by_user_id(user_id: int):
     - **user_id**: The unique user ID.
     """
     return await note_controller.get_notes(user_id)
+
+
+@router.get(
+    "/organizations/{organizations_id}",
+    response_model=NotesResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get all notes by organization ID",
+)
+async def get_notes_by_user_id_and_org_id(organizations_id: int):
+    """
+    Fetch all notes for a organization ID.
+    - **org_id**: The unique organization ID.
+    """
+    return await note_controller.get_notes_by_org_id(organizations_id)
 
 
 @router.get(
@@ -69,6 +103,22 @@ async def update_note(note_id: int, note_data: NoteUpdate):
     - **text**: The updated note's text.
     """
     return await note_controller.update_note(note_id, note_data)
+
+
+@router.post(
+    "/users/{user_id}/search",
+    response_model=NotesResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Search similar notes on user",
+)
+async def search_similar(user_id: int, note_data: NoteSearch):
+    """
+    Create a new note in the database.
+    - **user_id**: The unique userid of each user.
+    - **text**: The note's text.
+    - **n_items** (default 3): how many similar notes you'll get.
+    """
+    return await note_controller.query_similar_notes(user_id, note_data)
 
 
 @router.delete("/{note_id}", status_code=status.HTTP_200_OK, summary="Delete a note")

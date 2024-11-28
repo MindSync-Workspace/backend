@@ -26,6 +26,13 @@ class NoteCreate(BaseModel):
     text: str
 
 
+class NoteSearch(BaseModel):
+    # org_id: Optional[int] = None
+    # number: Optional[str] = None
+    n_items: int
+    text: str
+
+
 class NoteUpdate(BaseModel):
     user_id: int
     org_id: Optional[int] = None

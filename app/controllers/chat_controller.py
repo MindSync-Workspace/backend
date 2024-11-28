@@ -29,7 +29,7 @@ class ChatController:
 
     async def get_chats_by_document_id(self, document_id: int):
         try:
-            chats_query = Chats.filter(document_id=document_id)
+            chats_query = await Chats.filter(document_id=document_id)
             chats_data = await ChatPydantic.from_queryset(chats_query)
             chats_dict = [chat.model_dump() for chat in chats_data]
 
@@ -38,7 +38,7 @@ class ChatController:
                 message="Berhasil mendapatkan chats",
                 data=chats_dict,
             )
-        
+
         except Exception as e:
             logging.error(
                 f"Terjadi error saat mengambil data chats dengan Document ID {document_id}: {e}"
@@ -68,10 +68,10 @@ class ChatController:
                 message="Chat berhasil diupdate",
                 data=updated_chat.model_dump(),
             )
-        
+
         except HTTPException as http_exc:
             raise http_exc
-        
+
         except Exception as e:
             logging.error(
                 f"Terjadi error saat memperbarui chat dengan ID {chat_id}: {e}"
@@ -97,10 +97,10 @@ class ChatController:
                 message="Berhasil menghapus chat",
                 data={},
             )
-        
+
         except HTTPException as http_exc:
             raise http_exc
-        
+
         except Exception as e:
             logging.error(f"Terjadi error saat menghapus chat dengan ID {chat_id}: {e}")
             raise HTTPException(

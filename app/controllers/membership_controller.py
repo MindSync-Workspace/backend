@@ -7,6 +7,7 @@ import logging
 
 MembershipPydantic = pydantic_model_creator(Memberships, name="Membership")
 
+
 class MembershipController:
     async def create_membership(self, membership_data: MembershipCreate):
         try:
@@ -29,14 +30,16 @@ class MembershipController:
         try:
             memberships_query = Memberships.filter(user_id=user_id)
             memberships_data = await MembershipPydantic.from_queryset(memberships_query)
-            memberships_dict = [membership.model_dump() for membership in memberships_data]
+            memberships_dict = [
+                membership.model_dump() for membership in memberships_data
+            ]
 
             return create_response(
                 status_code=status.HTTP_200_OK,
                 message="Berhasil mendapatkan memberships",
                 data=memberships_dict,
             )
-        
+
         except Exception as e:
             logging.error(
                 f"Terjadi error saat mengambil data memberships dengan User ID {user_id}: {e}"
@@ -46,16 +49,23 @@ class MembershipController:
                 detail=["Terjadi error saat mengambil data memberships", str(e)],
             )
 
-    async def update_membership(self, membership_id: int, membership_data: MembershipUpdate):
+    async def update_membership(
+        self, membership_id: int, membership_data: MembershipUpdate
+    ):
         try:
             membership = await Memberships.get_or_none(id=membership_id)
             if not membership:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=[f"Membership dengan ID {membership_id} tidak ditemukan", str(e)],
+                    detail=[
+                        f"Membership dengan ID {membership_id} tidak ditemukan",
+                        str(e),
+                    ],
                 )
 
-            await Memberships.filter(id=membership_id).update(**membership_data.model_dump())
+            await Memberships.filter(id=membership_id).update(
+                **membership_data.model_dump()
+            )
 
             updated_membership = await MembershipPydantic.from_tortoise_orm(
                 await Memberships.get(id=membership_id)
@@ -68,7 +78,7 @@ class MembershipController:
             )
         except HTTPException as http_exc:
             raise http_exc
-        
+
         except Exception as e:
             logging.error(
                 f"Terjadi error saat memperbarui membership dengan ID {membership_id}: {e}"
@@ -82,7 +92,9 @@ class MembershipController:
         try:
             membership = await Memberships.filter(id=membership_id).first()
             if not membership:
-                raise HTTPException(status_code=404, detail=["Membership tidak ditemukan"])
+                raise HTTPException(
+                    status_code=404, detail=["Membership tidak ditemukan"]
+                )
 
             await membership.delete()
 
@@ -90,12 +102,14 @@ class MembershipController:
                 status_code=status.HTTP_200_OK,
                 message="Berhasil menghapus membership",
                 data={},
-            ) 
+            )
         except HTTPException as http_exc:
             raise http_exc
-        
+
         except Exception as e:
-            logging.error(f"Terjadi error saat menghapus membership dengan ID {membership_id}: {e}")
+            logging.error(
+                f"Terjadi error saat menghapus membership dengan ID {membership_id}: {e}"
+            )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=["Terjadi error saat menghapus membership", str(e)],
