@@ -1,10 +1,16 @@
 from fastapi import APIRouter, status
 from app.controllers.membership_controller import MembershipController
-from app.schemas.memberships import MembershipCreate, MembershipResponse, MembershipUpdate
+from app.schemas.memberships import (
+    MembershipCreate,
+    MembershipResponse,
+    MembershipUpdate,
+    MembershipsResponse,
+)
 from typing import List
 
 router = APIRouter(prefix="/memberships", tags=["Memberships"])
 membership_controller = MembershipController()
+
 
 @router.post(
     "",
@@ -22,9 +28,10 @@ async def create_membership(membership_data: MembershipCreate):
     """
     return await membership_controller.create_membership(membership_data)
 
+
 @router.get(
     "/users/{user_id}",
-    response_model=List[MembershipResponse],
+    response_model=MembershipsResponse,
     status_code=status.HTTP_200_OK,
     summary="Get all memberships by user ID",
 )
@@ -34,6 +41,7 @@ async def get_memberships_by_user_id(user_id: int):
     - **user_id**: The unique user ID.
     """
     return await membership_controller.get_memberships_by_user_id(user_id)
+
 
 @router.put(
     "/{membership_id}",
@@ -51,7 +59,10 @@ async def update_membership(membership_id: int, membership_data: MembershipUpdat
     """
     return await membership_controller.update_membership(membership_id, membership_data)
 
-@router.delete("/{membership_id}", status_code=status.HTTP_200_OK, summary="Delete a membership")
+
+@router.delete(
+    "/{membership_id}", status_code=status.HTTP_200_OK, summary="Delete a membership"
+)
 async def delete_membership(membership_id: int):
     """
     Delete a membership by its ID.
