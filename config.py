@@ -1,7 +1,7 @@
 # config.py
 DATABASE_CONFIG = {
     "connections": {
-        "default": "postgres://postgres:admin123@localhost:5432/mindsync",
+        "default": "postgres://postgres:postgres@localhost:5432/mindsync",
     },
     "apps": {
         "models": {

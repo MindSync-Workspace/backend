@@ -12,7 +12,8 @@ class DocumentCreate(BaseModel):
     user_id: int
     title: str
     description: str
-
+    org_id: Optional[str] = None 
+    embedding: Optional[str] = None  
 
 class DocumentUpdate(BaseModel):
     id: int
