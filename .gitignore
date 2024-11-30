@@ -52,3 +52,4 @@ MANIFEST
 Thumbs.db
 
 db
+app/utils/secrets/service-account-key.json
