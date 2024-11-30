@@ -13,7 +13,7 @@ uvicorn main:app --reload
 
 // kalo update constraint harus hapus manual dbnya
 
-hapus folder migrations
+hapus folder migrations (jangan lupa server harus jalan)
 
 aerich init-db
 aerich migrate

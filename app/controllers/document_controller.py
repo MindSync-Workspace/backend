@@ -11,7 +11,8 @@ from pathlib import Path
 import os
 from app.utils.encrypt import handle_upload_and_encrypt, decrypt_document_aes
 from dotenv import load_dotenv
-load_dotenv() 
+
+load_dotenv()
 
 
 DocumentPydantic = pydantic_model_creator(Documents, name="Document")
@@ -21,11 +22,17 @@ class DocumentController:
 
     def __init__(self):
 
-        file_path = os.path.join(os.path.dirname(__file__), '..', 'utils', 'secrets', 'service-account-key.json')
+        file_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "utils",
+            "secrets",
+            "service-account-key.json",
+        )
         credentials = service_account.Credentials.from_service_account_file(file_path)
 
         self.kms_client = kms.KeyManagementServiceClient(credentials=credentials)
-        self.key_name = os.getenv('KMS_KEY_NAME')
+        self.key_name = os.getenv("KMS_KEY_NAME")
         if not self.key_name:
             raise Exception("KMS_KEY_NAME environment variable is not set.")
 
@@ -39,16 +46,14 @@ class DocumentController:
             file_name = file.filename
 
             # Encrypt the file and save it
-            file_path, encrypted_data = await handle_upload_and_encrypt(file_data, file_name, encryption_key)
-
-            # Encrypt the AES key using KMS
-            encrypted_key = self.kms_client.encrypt(name=self.key_name, plaintext=encryption_key).ciphertext
+            file_path, encrypted_data = await handle_upload_and_encrypt(
+                file_data, file_name, encryption_key
+            )
 
             # Prepare document metadata to store in the database
-            doc_dict = document_data.dict()  # Convert DocumentCreate to dict
-            doc_dict['file_id'] = str(file_path)  # Store the file path
-            doc_dict['encryption_key'] = encrypted_key  # Store the encrypted AES key
-            doc_dict['file_size'] = len(encrypted_data)  # Store the file size (optional)
+            doc_dict = document_data.model_dump()
+            doc_dict["file_id"] = str(file_path)
+            doc_dict["file_size"] = len(encrypted_data)
 
             # Create the document entry in the database
             doc_obj = await Documents.create(**doc_dict)
@@ -59,7 +64,7 @@ class DocumentController:
             return create_response(
                 status_code=status.HTTP_201_CREATED,
                 message="Document berhasil diupload",
-                data=doc_data.dict(),  # Use dict() to get data as a response
+                data=doc_data.model_dump(),
             )
 
         except Exception as e:
