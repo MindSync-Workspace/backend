@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 from app.controllers.chat_controller import ChatController
-from app.schemas.chats import ChatCreate, ChatResponse, ChatUpdate
+from app.schemas.chats import ChatCreate, ChatResponse, ChatUpdate, ChatsResponse
 from typing import List
 
 router = APIRouter(prefix="/chats", tags=["Chats"])
@@ -26,7 +26,7 @@ async def create_chat(chat_data: ChatCreate):
 
 @router.get(
     "/documents/{document_id}",
-    response_model=List[ChatResponse],
+    response_model=ChatsResponse,
     status_code=status.HTTP_200_OK,
     summary="Get all chats by document ID",
 )

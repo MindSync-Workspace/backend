@@ -3,6 +3,11 @@ from typing import Optional, List
 from datetime import datetime
 
 
+class MetaResponse(BaseModel):
+    status: int
+    message: str
+
+
 class DocumentCreate(BaseModel):
     user_id: int
     title: str
@@ -20,7 +25,7 @@ class DocumentUpdate(BaseModel):
     file_id: Optional[str] = None
 
 
-class DocumentResponse(BaseModel):
+class DocumentData(BaseModel):
     id: int
     user_id: int
     org_id: str
@@ -29,3 +34,13 @@ class DocumentResponse(BaseModel):
     token_identifier: str
     embedding: str
     file_id: str
+
+
+class DocumentResponse(BaseModel):
+    meta: MetaResponse
+    data: DocumentData
+
+
+class DocumentsResponse(BaseModel):
+    meta: MetaResponse
+    data: List[DocumentData]

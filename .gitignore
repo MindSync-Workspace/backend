@@ -50,3 +50,5 @@ MANIFEST
 # Other files
 .DS_Store
 Thumbs.db
+
+db

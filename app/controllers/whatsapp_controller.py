@@ -5,6 +5,7 @@ from tortoise.contrib.pydantic import pydantic_model_creator
 import logging
 import cuid
 from app.utils.response import create_response
+from tortoise.exceptions import DoesNotExist
 
 WhatsappPydantic = pydantic_model_creator(Whatsapps, name="Whatsapp")
 
@@ -48,13 +49,10 @@ class WhatsappController:
                     )
 
             else:
-                whatsapp_obj = Whatsapps(
-                    number=whatsapp_data.number,
-                    secret_key=whatsapp_data.secret_key,
-                )
+                whatsapp_obj = await Whatsapps.get(secret_key=whatsapp_data.secret_key)
                 await whatsapp_obj.save()
 
-            whatsapp_obj.secret_key = whatsapp_data.secret_key
+            whatsapp_obj.number = whatsapp_data.number
             await whatsapp_obj.save()
 
             updated_whatsapp_data = await WhatsappPydantic.from_tortoise_orm(
@@ -65,6 +63,11 @@ class WhatsappController:
                 status_code=status.HTTP_200_OK,
                 message="WhatsApp berhasil terhubung ke akun pengguna",
                 data=updated_whatsapp_data.model_dump(),
+            )
+        except DoesNotExist:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=["Secret key tidak ditemukan atau tidak valid"],
             )
 
         except HTTPException as http_exc:

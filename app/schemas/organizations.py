@@ -1,6 +1,11 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
+
+
+class MetaResponse(BaseModel):
+    status: int
+    message: str
 
 
 class OrganizationCreate(BaseModel):
@@ -17,7 +22,7 @@ class OrganizationUpdate(BaseModel):
     end_date: Optional[datetime] = None
 
 
-class OrganizationResponse(BaseModel):
+class OrganizationData(BaseModel):
     id: int
     name: str
     description: Optional[str] = None
@@ -25,3 +30,13 @@ class OrganizationResponse(BaseModel):
     modified_at: datetime
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
+
+
+class OrganizationResponse(BaseModel):
+    meta: MetaResponse
+    data: OrganizationData
+
+
+class OrganizationsResponse(BaseModel):
+    meta: MetaResponse
+    data: List[OrganizationData]
