@@ -11,7 +11,7 @@ class MetaResponse(BaseModel):
 class DocumentCreate(BaseModel):
     user_id: int
     title: str
-    description: str
+    description: Optional[str] = None 
     org_id: Optional[str] = None 
     embedding: Optional[str] = None  
 
