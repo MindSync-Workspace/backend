@@ -10,15 +10,14 @@ class Documents(models.Model):
     token_identifier = fields.CharField(max_length=255, null=True)
     org_id = fields.CharField(max_length=255, null=True)
     embedding = fields.JSONField(null=True, default=None)
-    file_id = fields.CharField(max_length=255)  
-    encryption_key = fields.CharField(max_length=500, null=True)  
-    file_size = fields.IntField(null=True)  
-    user = fields.ForeignKeyField(
-        "models.Users", related_name="documents", null=True
-    )  
+    file_id = fields.CharField(max_length=255)
+    encryption_key = fields.CharField(max_length=500, null=True)
+    file_size = fields.IntField(null=True)
+    user = fields.ForeignKeyField("models.Users", related_name="documents", null=True)
 
-    created_at = fields.DatetimeField(auto_now_add=True) 
-    updated_at = fields.DatetimeField(auto_now=True)  
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
     class Meta:
         table = "documents"
 

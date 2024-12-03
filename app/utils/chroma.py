@@ -3,7 +3,9 @@ from app.utils.embed import generate_embedding
 
 client = chromadb.PersistentClient(path="./db")
 
-notes_collection = client.get_or_create_collection(name="notes")
+notes_collection = client.get_or_create_collection(
+    name="notes",
+)
 
 
 async def add_note_to_collection(note_id: str, text: str, metadata: dict = None):
@@ -18,9 +20,7 @@ async def add_note_to_collection(note_id: str, text: str, metadata: dict = None)
 
 
 async def query_note_similar(text: str, user_id: int, n_results: int = 3):
-    note = await get_notes_on_vector_db("12")
-    print(note)
-    results = notes_collection.query(query_texts=[text], n_results=1)
+    results = notes_collection.query(query_texts=[text], n_results=n_results)
     return results
 
 

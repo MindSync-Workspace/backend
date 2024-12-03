@@ -26,7 +26,7 @@ class DocumentController:
         credentials = service_account.Credentials.from_service_account_file(file_path)
 
         self.kms_client = kms.KeyManagementServiceClient(credentials=credentials)
-        self.key_name = os.getenv('KMS_KEY_NAME')
+        self.key_name = os.getenv("KMS_KEY_NAME")
         if not self.key_name:
             raise Exception("KMS_KEY_NAME environment variable is not set.")
 
@@ -64,6 +64,7 @@ class DocumentController:
             return create_response(
                 status_code=status.HTTP_201_CREATED,
                 message="Document berhasil diupload",
+                data=doc_data.model_dump(),
                 data=doc_data.model_dump(),
             )
         except Exception as e:
