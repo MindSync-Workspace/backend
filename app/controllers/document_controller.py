@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status, UploadFile
 from app.models.documents import Documents
-from fastapi.responses import FileResponse
+from io import BytesIO
+from fastapi.responses import  StreamingResponse
 from app.schemas.documents import DocumentUpdate, DocumentResponse, DocumentsResponse, DocumentCreate
 from tortoise.exceptions import DoesNotExist
 from tortoise.contrib.pydantic import pydantic_model_creator
@@ -64,7 +65,6 @@ class DocumentController:
             return create_response(
                 status_code=status.HTTP_201_CREATED,
                 message="Document berhasil diupload",
-                data=doc_data.model_dump(),
                 data=doc_data.model_dump(),
             )
         except Exception as e:
@@ -152,7 +152,8 @@ class DocumentController:
                 detail=f"Error retrieving documents: {str(e)}",
             )
 
-    async def download_document(self, document_id: int) -> FileResponse:
+
+    async def download_document(self, document_id: int) -> StreamingResponse:
         try:
             # Fetch the document metadata from the database
             doc = await Documents.get(id=document_id)
@@ -185,13 +186,17 @@ class DocumentController:
             # Decrypt the document
             decrypted_data = decrypt_document_aes(encrypted_data, encryption_key)
 
-            # Save the decrypted data to a temporary file to serve as a response
-            decrypted_file_path = Path("media") / f"decrypted_{document_id}"
-            with open(decrypted_file_path, 'wb') as f:
-                f.write(decrypted_data)
 
-            # Return the decrypted file for download with the correct MIME type based on the file extension
-            return FileResponse(decrypted_file_path, media_type="application/octet-stream", filename=f"document_{document_id}.pdf")
+            decrypted_file = BytesIO(decrypted_data)
+            decrypted_file.seek(0)
+
+            # Prepare headers for Content-Disposition with filename
+            headers = {
+                "Content-Disposition": f"attachment; filename=document_{document_id}.pdf"
+            }
+
+            # Return the decrypted file for download with the correct MIME type
+            return StreamingResponse(decrypted_file, media_type="application/octet-stream", headers=headers)
 
         except Exception as e:
             logging.error(f"Error during document download: {e}")
