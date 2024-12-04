@@ -15,13 +15,12 @@ chat_controller = ChatController()
 )
 async def create_chat(chat_data: ChatCreate):
     """
-    Create a new chat in the database.
+    Create a new chat and get bot response.
     - **document_id**: The unique ID of the document.
-    - **token_identifier**: A unique token identifier for the chat.
     - **is_human**: Indicates if the message is from a human.
     - **text**: The content of the chat message.
     """
-    return await chat_controller.create_chat(chat_data)
+    return await chat_controller.create_chat_and_get_bot_response(chat_data)
 
 
 @router.get(
@@ -48,7 +47,7 @@ async def update_chat(chat_id: int, chat_data: ChatUpdate):
     """
     Update a specific chat by its ID.
     - **chat_id**: The unique ID of the chat to update.
-    - **token_identifier**: Updated token identifier for the chat (optional).
+
     - **is_human**: Updated human flag (optional).
     - **text**: Updated text of the chat (optional).
     """

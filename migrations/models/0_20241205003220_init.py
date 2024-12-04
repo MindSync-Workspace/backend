@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS "memberships" (
 CREATE TABLE IF NOT EXISTS "documents" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "title" VARCHAR(255) NOT NULL,
-    "description" TEXT,
+    "summary" TEXT,
     "token_identifier" VARCHAR(255),
     "org_id" VARCHAR(255),
     "embedding" JSONB,
@@ -55,13 +55,12 @@ CREATE TABLE IF NOT EXISTS "documents" (
 );
 CREATE TABLE IF NOT EXISTS "chats" (
     "id" SERIAL NOT NULL PRIMARY KEY,
-    "token_identifier" VARCHAR(255) NOT NULL,
+    "token_identifier" VARCHAR(255),
     "is_human" BOOL NOT NULL,
     "text" VARCHAR(255) NOT NULL,
     "document_id" INT NOT NULL REFERENCES "documents" ("id") ON DELETE CASCADE,
-    "org_id" INT NOT NULL REFERENCES "organizations" ("id") ON DELETE CASCADE,
-    "user_id" INT NOT NULL REFERENCES "users" ("id") ON DELETE CASCADE,
-    CONSTRAINT "uid_chats_org_id_b0edd3" UNIQUE ("org_id", "user_id", "document_id")
+    "org_id" INT REFERENCES "organizations" ("id") ON DELETE CASCADE,
+    "user_id" INT NOT NULL REFERENCES "users" ("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "whatsapps" (
     "id" SERIAL NOT NULL PRIMARY KEY,

@@ -11,7 +11,8 @@ class MetaResponse(BaseModel):
 class ChatData(BaseModel):
     id: int
     document_id: int
-    token_identifier: str
+    # token_identifier: str
+    org_id: int
     is_human: bool
     text: str
     created_at: datetime
@@ -21,8 +22,8 @@ class ChatData(BaseModel):
 class ChatCreate(BaseModel):
     document_id: int
     user_id: int
-    org_id: int
-    token_identifier: str
+    org_id: Optional[int] = None
+    # token_identifier: str
     is_human: bool
     text: str
 

@@ -10,15 +10,30 @@ ChatPydantic = pydantic_model_creator(Chats, name="Chat")
 
 
 class ChatController:
-    async def create_chat(self, chat_data: ChatCreate):
+    async def create_chat_and_get_bot_response(self, chat_data: ChatCreate):
         try:
             chat_dict = chat_data.model_dump()
+            chat_dict["is_human"] = True
             chat_obj = await Chats.create(**chat_dict)
             chat_data = await ChatPydantic.from_tortoise_orm(chat_obj)
+
+            bot_response_text = "Ini Bot response"
+
+            bot_chat_data = {
+                "document_id": chat_dict["document_id"],
+                "user_id": chat_dict["user_id"],
+                # "org_id": chat_dict.get("org"),
+                "is_human": False,
+                "text": bot_response_text,
+            }
+
+            bot_chat_obj = await Chats.create(**bot_chat_data)
+            bot_chat_data = await ChatPydantic.from_tortoise_orm(bot_chat_obj)
+
             return create_response(
                 status_code=status.HTTP_201_CREATED,
-                message="Chat berhasil dibuat",
-                data=chat_data.model_dump(),
+                message="Ini response bot",
+                data=bot_chat_data.model_dump(),
             )
         except Exception as e:
             logging.error(f"Error saat membuat chat: {e}")
@@ -29,7 +44,7 @@ class ChatController:
 
     async def get_chats_by_document_id(self, document_id: int):
         try:
-            chats_query = await Chats.filter(document_id=document_id)
+            chats_query = Chats.filter(document_id=document_id).order_by("created_at")
             chats_data = await ChatPydantic.from_queryset(chats_query)
             chats_dict = [chat.model_dump() for chat in chats_data]
 

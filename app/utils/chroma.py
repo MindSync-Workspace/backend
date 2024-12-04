@@ -1,9 +1,7 @@
 import chromadb
 from app.utils.embed import generate_embedding
 
-client = chromadb.HttpClient(
-    host="https://chroma-app-3650861314.asia-east1.run.app/", port=8080, ssl=True
-)
+client = chromadb.PersistentClient(path="./db")
 
 client.heartbeat()
 

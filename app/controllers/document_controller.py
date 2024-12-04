@@ -97,7 +97,7 @@ class DocumentController:
             doc = await Documents.get(id=document_update.id)
 
             # Dynamically update provided fields
-            update_data = document_update.dict(
+            update_data = document_update.model_dump(
                 exclude_unset=True
             )  # Get only fields that were set
             for field, value in update_data.items():
@@ -111,13 +111,13 @@ class DocumentController:
             return create_response(
                 status_code=status.HTTP_200_OK,
                 message="Document updated successfully",
-                data=doc_data.dict(),
+                data=doc_data.model_dump(),
             )
 
         except DoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Document not found",
+                detail=["Document not found"],
             )
 
     async def delete_document(self, document_id: int):
@@ -135,31 +135,38 @@ class DocumentController:
             # Delete the document from the database
             await doc.delete()
 
-            # Return a successful response with only status and message
-            return {
-                "status": status.HTTP_200_OK,
-                "message": "Document deleted successfully",
-            }
+            return create_response(
+                status_code=status.HTTP_200_OK,
+                message="Document deleted successfully",
+                data={},
+            )
 
         except DoesNotExist:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Document not found",
+                detail=["Document not found"],
             )
         except Exception as e:
             logging.error(f"Error deleting document: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error deleting document: {str(e)}",
+                detail=["Error deleting document", f"{str(e)}"],
             )
 
     # List all Documents
-    async def get_all_documents(self, user_id: int) -> DocumentsResponse:
+    async def get_all_documents_by_user_id(self, user_id: int) -> DocumentsResponse:
         try:
             docs = Documents.filter(user_id=user_id)
             docs_data = await DocumentPydantic.from_queryset(docs)
 
-            docs_dict = [doc.dict() for doc in docs_data]
+            docs_dict = [
+                {
+                    key: value
+                    for key, value in doc.model_dump().items()
+                    if key != "encryption_key"
+                }
+                for doc in docs_data
+            ]
             return create_response(
                 status_code=status.HTTP_200_OK,
                 message="Documents retrieved successfully",
@@ -169,7 +176,7 @@ class DocumentController:
             logging.exception("Error retrieving documents")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error retrieving documents: {str(e)}",
+                detail=["Error retrieving documents", str(e)],
             )
 
     async def download_document(self, document_id: int) -> StreamingResponse:
@@ -180,7 +187,7 @@ class DocumentController:
             if not doc:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Document not found",
+                    detail=["Document not found"],
                 )
 
             # Get the encrypted file path, encryption key, and the original file extension from the database
@@ -195,7 +202,7 @@ class DocumentController:
             if not encrypted_file_path.exists():
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Encrypted file not found",
+                    detail=["Encrypted file not found"],
                 )
 
             # Read the encrypted file data
@@ -222,5 +229,5 @@ class DocumentController:
             logging.error(f"Error during document download: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error during document download: {str(e)}",
+                detail=["Error during document download", f"{str(e)}"],
             )

@@ -103,7 +103,7 @@ async def list_documents(user_id: int):
     - **user_id**: The ID of the user whose documents to list.
     """
     try:
-        return await document_controller.list_documents(user_id)
+        return await document_controller.get_all_documents_by_user_id(user_id)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
