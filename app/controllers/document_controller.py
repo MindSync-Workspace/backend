@@ -18,6 +18,7 @@ from pathlib import Path
 import os
 import logging
 from app.utils.encrypt import encrypt_document_aes, decrypt_document_aes
+from app.utils.get_user_id import get_user_id_by_whatsapp_number
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -230,4 +231,19 @@ class DocumentController:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=["Error during document download", f"{str(e)}"],
+            )
+
+    async def upload_document_by_whatsapp_number(
+        self, document_data: DocumentCreate, file: UploadFile
+    ):
+        try:
+            user_id = await get_user_id_by_whatsapp_number(document_data.number)
+            document_data.user_id = user_id
+
+            return self.upload_document(document_data, file)
+        except Exception as e:
+            logging.error(f"Error saat mengupload document: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=["Terjadi error saat mengupload document", str(e)],
             )

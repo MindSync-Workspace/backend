@@ -9,7 +9,8 @@ class MetaResponse(BaseModel):
 
 
 class DocumentCreate(BaseModel):
-    user_id: int
+    user_id: Optional[int] = None
+    number: Optional[str] = None
     title: str
     summary: Optional[str] = None
     org_id: Optional[str] = None
