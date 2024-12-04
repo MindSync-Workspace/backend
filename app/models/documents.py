@@ -6,7 +6,7 @@ import os
 class Documents(models.Model):
     id = fields.IntField(pk=True)
     title = fields.CharField(max_length=255)
-    description = fields.TextField(null=True)
+    summary = fields.TextField(null=True)
     token_identifier = fields.CharField(max_length=255, null=True)
     org_id = fields.CharField(max_length=255, null=True)
     embedding = fields.JSONField(null=True, default=None)

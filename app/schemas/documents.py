@@ -11,16 +11,17 @@ class MetaResponse(BaseModel):
 class DocumentCreate(BaseModel):
     user_id: int
     title: str
-    description: Optional[str] = None 
-    org_id: Optional[str] = None 
-    embedding: Optional[str] = None  
+    summary: Optional[str] = None
+    org_id: Optional[str] = None
+    embedding: Optional[str] = None
+
 
 class DocumentUpdate(BaseModel):
     id: int
     user_id: int
     org_id: Optional[str] = None
     title: Optional[str] = None
-    description: Optional[str] = None
+    summary: Optional[str] = None
     token_identifier: Optional[str] = None
     embedding: Optional[str] = None
     file_id: Optional[str] = None
@@ -31,7 +32,7 @@ class DocumentData(BaseModel):
     user_id: int
     org_id: str
     title: str
-    description: str
+    summary: str
     token_identifier: str
     embedding: str
     file_id: str

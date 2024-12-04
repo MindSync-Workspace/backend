@@ -1,8 +1,13 @@
 from fastapi import HTTPException, status, UploadFile
 from app.models.documents import Documents
 from io import BytesIO
-from fastapi.responses import  StreamingResponse
-from app.schemas.documents import DocumentUpdate, DocumentResponse, DocumentsResponse, DocumentCreate
+from fastapi.responses import StreamingResponse
+from app.schemas.documents import (
+    DocumentUpdate,
+    DocumentResponse,
+    DocumentsResponse,
+    DocumentCreate,
+)
 from tortoise.exceptions import DoesNotExist
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.utils.response import create_response
@@ -14,6 +19,7 @@ import os
 import logging
 from app.utils.encrypt import encrypt_document_aes, decrypt_document_aes
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -23,7 +29,13 @@ DocumentPydantic = pydantic_model_creator(Documents, name="Document")
 class DocumentController:
 
     def __init__(self):
-        file_path = os.path.join(os.path.dirname(__file__), '..', 'utils', 'secrets', 'service-account-key.json')
+        file_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "utils",
+            "secrets",
+            "service-account-key.json",
+        )
         credentials = service_account.Credentials.from_service_account_file(file_path)
 
         self.kms_client = kms.KeyManagementServiceClient(credentials=credentials)
@@ -37,7 +49,7 @@ class DocumentController:
             encryption_key = os.urandom(32)
 
             # Encode the encryption key to base64
-            encryption_key_base64 = base64.b64encode(encryption_key).decode('utf-8')
+            encryption_key_base64 = base64.b64encode(encryption_key).decode("utf-8")
 
             # Read file data
             file_data = await file.read()
@@ -47,15 +59,19 @@ class DocumentController:
             encrypted_data = encrypt_document_aes(file_data, encryption_key)
 
             # Save only the encrypted file
-            encrypted_file_path = Path("media") / (file_name + ".enc")  # Store encrypted version with '.enc' extension
-            with open(encrypted_file_path, 'wb') as f:
+            encrypted_file_path = Path("media") / (
+                file_name + ".enc"
+            )  # Store encrypted version with '.enc' extension
+            with open(encrypted_file_path, "wb") as f:
                 f.write(encrypted_data)
 
             # Prepare document metadata to store in the database
             doc_dict = document_data.model_dump()
             doc_dict["file_id"] = str(encrypted_file_path)  # Path to encrypted file
             doc_dict["file_size"] = len(encrypted_data)  # Size of the encrypted file
-            doc_dict["encryption_key"] = encryption_key_base64  # Store the base64-encoded encryption key
+            doc_dict["encryption_key"] = (
+                encryption_key_base64  # Store the base64-encoded encryption key
+            )
 
             # Create the document entry in the database
             doc_obj = await Documents.create(**doc_dict)
@@ -73,13 +89,17 @@ class DocumentController:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=["Terjadi error saat mengupload document", str(e)],
             )
-        
-    async def update_document(self, document_update: DocumentUpdate) -> DocumentResponse:
+
+    async def update_document(
+        self, document_update: DocumentUpdate
+    ) -> DocumentResponse:
         try:
             doc = await Documents.get(id=document_update.id)
 
             # Dynamically update provided fields
-            update_data = document_update.dict(exclude_unset=True)  # Get only fields that were set
+            update_data = document_update.dict(
+                exclude_unset=True
+            )  # Get only fields that were set
             for field, value in update_data.items():
                 setattr(doc, field, value)
 
@@ -101,42 +121,42 @@ class DocumentController:
             )
 
     async def delete_document(self, document_id: int):
-            try:
-                # Retrieve the document by its ID
-                doc = await Documents.get(id=document_id)
+        try:
+            # Retrieve the document by its ID
+            doc = await Documents.get(id=document_id)
 
-                # Get the file path from the document
-                file_path = Path(doc.file_id)  # The file_path is stored in the database
+            # Get the file path from the document
+            file_path = Path(doc.file_id)  # The file_path is stored in the database
 
-                # Ensure the file exists before attempting to delete
-                if file_path.exists():
-                    os.remove(file_path)  # Delete the file from the media directory
+            # Ensure the file exists before attempting to delete
+            if file_path.exists():
+                os.remove(file_path)  # Delete the file from the media directory
 
-                # Delete the document from the database
-                await doc.delete()
+            # Delete the document from the database
+            await doc.delete()
 
-                # Return a successful response with only status and message
-                return {
-                    "status": status.HTTP_200_OK,
-                    "message": "Document deleted successfully"
-                }
+            # Return a successful response with only status and message
+            return {
+                "status": status.HTTP_200_OK,
+                "message": "Document deleted successfully",
+            }
 
-            except DoesNotExist:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Document not found",
-                )
-            except Exception as e:
-                logging.error(f"Error deleting document: {e}")
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=f"Error deleting document: {str(e)}",
-                )
+        except DoesNotExist:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Document not found",
+            )
+        except Exception as e:
+            logging.error(f"Error deleting document: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error deleting document: {str(e)}",
+            )
 
     # List all Documents
-    async def list_documents(self, user_id: int) -> DocumentsResponse:
-        try:            
-            docs = Documents.filter(user_id=user_id) 
+    async def get_all_documents(self, user_id: int) -> DocumentsResponse:
+        try:
+            docs = Documents.filter(user_id=user_id)
             docs_data = await DocumentPydantic.from_queryset(docs)
 
             docs_dict = [doc.dict() for doc in docs_data]
@@ -151,7 +171,6 @@ class DocumentController:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error retrieving documents: {str(e)}",
             )
-
 
     async def download_document(self, document_id: int) -> StreamingResponse:
         try:
@@ -170,7 +189,7 @@ class DocumentController:
 
             # Ensure the encryption key is in bytes format (if it's a string, convert it to bytes)
             if isinstance(encryption_key, str):
-                encryption_key = encryption_key.encode('utf-8')  # Convert to bytes
+                encryption_key = encryption_key.encode("utf-8")  # Convert to bytes
 
             # Ensure the encrypted file exists
             if not encrypted_file_path.exists():
@@ -180,12 +199,11 @@ class DocumentController:
                 )
 
             # Read the encrypted file data
-            with open(encrypted_file_path, 'rb') as f:
+            with open(encrypted_file_path, "rb") as f:
                 encrypted_data = f.read()
 
             # Decrypt the document
             decrypted_data = decrypt_document_aes(encrypted_data, encryption_key)
-
 
             decrypted_file = BytesIO(decrypted_data)
             decrypted_file.seek(0)
@@ -196,11 +214,13 @@ class DocumentController:
             }
 
             # Return the decrypted file for download with the correct MIME type
-            return StreamingResponse(decrypted_file, media_type="application/octet-stream", headers=headers)
+            return StreamingResponse(
+                decrypted_file, media_type="application/octet-stream", headers=headers
+            )
 
         except Exception as e:
             logging.error(f"Error during document download: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error during document download: {str(e)}"
+                detail=f"Error during document download: {str(e)}",
             )

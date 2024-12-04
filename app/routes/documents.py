@@ -1,12 +1,18 @@
 from fastapi import APIRouter, HTTPException, status, UploadFile, Form, File
 from fastapi.responses import FileResponse
 from app.controllers.document_controller import DocumentController
-from app.schemas.documents import DocumentCreate, DocumentUpdate, DocumentResponse, DocumentsResponse
+from app.schemas.documents import (
+    DocumentCreate,
+    DocumentUpdate,
+    DocumentResponse,
+    DocumentsResponse,
+)
 from typing import Optional
 from app.utils.response import create_response
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 document_controller = DocumentController()
+
 
 # Upload Document
 @router.post(
@@ -16,26 +22,25 @@ document_controller = DocumentController()
     summary="Upload and encrypt a new document",
 )
 async def upload_document(
-    user_id: int = Form(...),
-    title: str = Form(...),
-    description: Optional[str] = Form(None),
-    file: UploadFile = File(...)
+    user_id: int = Form(...), title: str = Form(...), file: UploadFile = File(...)
 ):
     """
     Upload a new document, encrypt it, and save its metadata.
     - **user_id**: The ID of the user uploading the document.
     - **title**: The title of the document.
-    - **description**: A description of the document.
     - **file**: The document file to upload.
     """
     try:
-        document_data = DocumentCreate(user_id=user_id, title=title, description=description)
+        document_data = DocumentCreate(
+            user_id=user_id, title=title, summary="tteeeesssstttt"
+        )
         return await document_controller.upload_document(document_data, file)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error uploading document: {str(e)}",
         )
+
 
 # Update Document
 @router.put(
@@ -44,17 +49,16 @@ async def upload_document(
     status_code=status.HTTP_200_OK,
     summary="Update an existing document",
 )
-async def update_document(
-    document_id: int,
-    document_update: DocumentUpdate
-):
+async def update_document(document_id: int, document_update: DocumentUpdate):
     """
     Update an existing document by its ID.
     - **document_id**: The ID of the document to update.
-    - **document_update**: The fields to update (title, description, etc.).
+    - **document_update**: The fields to update (title, summary, etc.).
     """
     try:
-        document_update.id = document_id  # Ensure the ID is included in the update request
+        document_update.id = (
+            document_id  # Ensure the ID is included in the update request
+        )
         return await document_controller.update_document(document_update)
     except Exception as e:
         raise HTTPException(
@@ -62,14 +66,13 @@ async def update_document(
             detail=f"Error updating document: {str(e)}",
         )
 
+
 @router.delete(
     "/{document_id}",
     status_code=status.HTTP_200_OK,
     summary="Delete a document",
 )
-async def delete_document(
-    document_id: int
-):
+async def delete_document(document_id: int):
     """
     Delete a document by its ID.
     - **document_id**: The ID of the document to delete.
@@ -94,9 +97,7 @@ async def delete_document(
     status_code=status.HTTP_200_OK,
     summary="List all documents for a user",
 )
-async def list_documents(
-    user_id: int
-):
+async def list_documents(user_id: int):
     """
     List all documents uploaded by a user.
     - **user_id**: The ID of the user whose documents to list.
@@ -108,6 +109,7 @@ async def list_documents(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error retrieving documents: {str(e)}",
         )
+
 
 @router.get(
     "/download/{document_id}",
