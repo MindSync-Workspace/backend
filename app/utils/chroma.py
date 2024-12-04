@@ -1,7 +1,12 @@
 import chromadb
 from app.utils.embed import generate_embedding
 
-client = chromadb.PersistentClient(path="./db")
+client = chromadb.HttpClient(
+    host="https://chroma-app-3650861314.asia-east1.run.app/", port=8080, ssl=True
+)
+
+client.heartbeat()
+
 
 notes_collection = client.get_or_create_collection(
     name="notes",
