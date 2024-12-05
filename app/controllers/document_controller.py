@@ -47,32 +47,36 @@ class DocumentController:
     async def upload_document(self, document_data: DocumentCreate, file: UploadFile):
         try:
             # Generate a random encryption key (AES-256)
-            encryption_key = os.urandom(32)
+            # encryption_key = os.urandom(32)
 
-            # Encode the encryption key to base64
-            encryption_key_base64 = base64.b64encode(encryption_key).decode("utf-8")
+            # # Encode the encryption key to base64
+            # encryption_key_base64 = base64.b64encode(encryption_key).decode("utf-8")
 
             # Read file data
             file_data = await file.read()
             file_name = file.filename
 
             # Encrypt the file
-            encrypted_data = encrypt_document_aes(file_data, encryption_key)
+            # encrypted_data = encrypt_document_aes(file_data, encryption_key)
 
             # Save only the encrypted file
             encrypted_file_path = Path("media") / (
-                file_name + ".enc"
+                file_name
             )  # Store encrypted version with '.enc' extension
             with open(encrypted_file_path, "wb") as f:
-                f.write(encrypted_data)
+                f.write(file_data)
 
             # Prepare document metadata to store in the database
             doc_dict = document_data.model_dump()
             doc_dict["file_path"] = str(encrypted_file_path)  # Path to encrypted file
-            doc_dict["file_size"] = len(encrypted_data)  # Size of the encrypted file
+            doc_dict["file_size"] = len(file_data)  # Size of the encrypted file
             doc_dict["encryption_key"] = (
-                encryption_key_base64  # Store the base64-encoded encryption key
+                "Asasa"  # Store the base64-encoded encryption key
             )
+
+            # doc_dict["encryption_key"] = (
+            #     encryption_key_base64  # Store the base64-encoded encryption key
+            # )
 
             # Create the document entry in the database
             doc_obj = await Documents.create(**doc_dict)
@@ -84,6 +88,7 @@ class DocumentController:
                 message="Document berhasil diupload",
                 data=doc_data.model_dump(),
             )
+
         except Exception as e:
             logging.error(f"Error saat mengupload document: {e}")
             raise HTTPException(

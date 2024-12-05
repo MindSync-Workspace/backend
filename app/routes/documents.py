@@ -105,8 +105,8 @@ async def download_document(document_id: int):
     status_code=status.HTTP_201_CREATED,
     summary="Upload and encrypt a new document (**BOT**)",
 )
-async def upload_document(
-    user_id: int = Form(...), title: str = Form(...), file: UploadFile = File(...)
+async def upload_document_from_whatsapp(
+    number: str = Form(...), title: str = Form(...), file: UploadFile = File(...)
 ):
     """
     Upload a new document, encrypt it, and save its metadata.
@@ -114,9 +114,10 @@ async def upload_document(
     - **title**: The title of the document.
     - **file**: The document file to upload.
     """
+    print(number, title)
 
-    document_data = DocumentCreate(
-        user_id=user_id, title=title, summary="tteeeesssstttt"
+    document_data = DocumentCreate(number=number, title=title, summary="tteeeesssstttt")
+
+    return await document_controller.upload_document_by_whatsapp_number(
+        document_data, file
     )
-
-    return await document_controller.upload_document(document_data, file)

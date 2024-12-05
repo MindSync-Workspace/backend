@@ -35,8 +35,11 @@ starlette==0.27.0
 
 # frozenlist==1.3.0
 # multidict==6.0.2
-chromadb==0.5.20
+chromadb
 cuid==0.4
 cryptography==43.0.3
 google==3.0.0
 google-cloud-kms==2.11.0
+pymupdf
+docx
+langflow
