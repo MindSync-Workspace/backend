@@ -53,3 +53,5 @@ Thumbs.db
 
 db
 app/utils/secrets/service-account-key.json
+RAG-MinSync.json
+mindsync-101010-734f0de0b5f9.json
