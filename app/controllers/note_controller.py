@@ -8,7 +8,7 @@ from app.utils.response import create_response
 import logging
 import datetime
 from app.utils.validate_org_access import validate_org_access
-from app.utils.chroma import (
+from app.utils.chroma.notes import (
     add_note_to_collection,
     get_notes_on_vector_db,
     process_note,
