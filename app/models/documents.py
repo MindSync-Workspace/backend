@@ -8,7 +8,7 @@ class Documents(models.Model):
     title = fields.CharField(max_length=255)
     summary = fields.TextField(null=True)
     org_id = fields.CharField(max_length=255, null=True)
-    file_id = fields.CharField(max_length=255)
+    file_path = fields.CharField(max_length=255)
     encryption_key = fields.CharField(max_length=500, null=True)
     file_size = fields.IntField(null=True)
     user = fields.ForeignKeyField("models.Users", related_name="documents", null=True)
