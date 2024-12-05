@@ -2,14 +2,33 @@ import chromadb
 from chromadb.config import Settings
 from app.utils.embed import generate_embedding
 
-client = chromadb.HttpClient(host="https://chroma-3650861314.asia-east1.run.app", port=443, ssl=True,
-                             settings=Settings(chroma_client_auth_provider="chromadb.auth.token_authn.TokenAuthClientProvider",
-                                               chroma_client_auth_credentials="mindsyncanjayslebew",
-                                               anonymized_telemetry=False))
+client = chromadb.HttpClient(
+    host="https://chroma-3650861314.asia-east1.run.app",
+    port=443,
+    ssl=True,
+    settings=Settings(
+        chroma_client_auth_provider="chromadb.auth.token_authn.TokenAuthClientProvider",
+        chroma_client_auth_credentials="mindsyncanjayslebew",
+        anonymized_telemetry=False,
+    ),
+)
 
 notes_collection = client.get_or_create_collection(
     name="notes",
 )
+
+
+async def add_docs_to_collection(document_id: str, text: str, metadata: dict = None):
+    documents_collection = client.create_collection(
+        name=f"documents_{document_id}",
+        # embedding_function=
+    )
+    # notes_collection.upsert(
+    #     ids=[str(note_id)],
+    #     documents=[text],
+    #     metadatas=[metadata or {}],
+    # )
+    ## TODO: 1 collection 1 docs (bcs text splitting)
 
 
 async def add_note_to_collection(note_id: str, text: str, metadata: dict = None):
@@ -20,7 +39,6 @@ async def add_note_to_collection(note_id: str, text: str, metadata: dict = None)
         documents=[text],
         metadatas=[metadata or {}],
     )
-    ## TODO: 1 collection 1 docs (bcs text splitting)
 
 
 async def query_note_similar(text: str, user_id: int, n_results: int = 3):
