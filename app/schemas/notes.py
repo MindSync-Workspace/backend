@@ -13,8 +13,6 @@ class NoteData(BaseModel):
     text: str
     user_id: int
     org_id: Optional[int] = None
-    embedding: Optional[List[float]] = None
-    token_identifier: Optional[str] = None
     created_at: datetime
     modified_at: datetime
 

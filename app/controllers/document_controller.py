@@ -68,7 +68,7 @@ class DocumentController:
 
             # Prepare document metadata to store in the database
             doc_dict = document_data.model_dump()
-            doc_dict["file_id"] = str(encrypted_file_path)  # Path to encrypted file
+            doc_dict["file_path"] = str(encrypted_file_path)  # Path to encrypted file
             doc_dict["file_size"] = len(encrypted_data)  # Size of the encrypted file
             doc_dict["encryption_key"] = (
                 encryption_key_base64  # Store the base64-encoded encryption key
@@ -127,7 +127,7 @@ class DocumentController:
             doc = await Documents.get(id=document_id)
 
             # Get the file path from the document
-            file_path = Path(doc.file_id)  # The file_path is stored in the database
+            file_path = Path(doc.file_path)  # The file_path is stored in the database
 
             # Ensure the file exists before attempting to delete
             if file_path.exists():
@@ -192,7 +192,7 @@ class DocumentController:
                 )
 
             # Get the encrypted file path, encryption key, and the original file extension from the database
-            encrypted_file_path = Path(doc.file_id)
+            encrypted_file_path = Path(doc.file_path)
             encryption_key = doc.encryption_key
 
             # Ensure the encryption key is in bytes format (if it's a string, convert it to bytes)

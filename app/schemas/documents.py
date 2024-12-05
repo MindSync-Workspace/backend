@@ -14,7 +14,6 @@ class DocumentCreate(BaseModel):
     title: str
     summary: Optional[str] = None
     org_id: Optional[str] = None
-    embedding: Optional[str] = None
 
 
 class DocumentUpdate(BaseModel):
@@ -22,10 +21,6 @@ class DocumentUpdate(BaseModel):
     user_id: int
     org_id: Optional[str] = None
     title: Optional[str] = None
-    summary: Optional[str] = None
-    token_identifier: Optional[str] = None
-    embedding: Optional[str] = None
-    file_id: Optional[str] = None
 
 
 class DocumentData(BaseModel):
@@ -34,9 +29,7 @@ class DocumentData(BaseModel):
     org_id: str
     title: str
     summary: str
-    token_identifier: str
-    embedding: str
-    file_id: str
+    file_path: str
 
 
 class DocumentResponse(BaseModel):
