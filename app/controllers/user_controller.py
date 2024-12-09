@@ -70,13 +70,13 @@ class UserController:
                 detail=["Terjadi error saat mengambil data user", str(e)],
             )
 
-    async def get_user(self, user_id: int):
+    async def get_user(self, email: str):
         try:
-            user = await Users.get_or_none(id=user_id)
+            user = await Users.get_or_none(email=email)
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=[f"User dengan ID {user_id} tidak ditemukan"],
+                    detail=[f"User dengan Email {email} tidak ditemukan"],
                 )
 
             user_data = await UserPydantic.from_tortoise_orm(user)
@@ -87,7 +87,7 @@ class UserController:
                 data=user_data.model_dump(),
             )
         except Exception as e:
-            logging.error(f"Error saat mengambil data user dengan ID {user_id}: {e}")
+            logging.error(f"Error saat mengambil data user dengan Email {email}: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=["Terjadi error saat mengambil data user", str(e)],

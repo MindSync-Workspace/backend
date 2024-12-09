@@ -96,6 +96,38 @@ class DocumentController:
                 detail=["Terjadi error saat mengupload document", str(e)],
             )
 
+    async def get_document_by_id(self, document_id: int) -> DocumentResponse:
+        try:
+            # Fetch the document metadata from the database
+            doc = await Documents.get(id=document_id)
+
+            if not doc:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=["Document not found"],
+                )
+
+            # Serialize the document data to return in the response
+            doc_data = await DocumentPydantic.from_tortoise_orm(doc)
+
+            return create_response(
+                status_code=status.HTTP_200_OK,
+                message="Document retrieved successfully",
+                data=doc_data.model_dump(),
+            )
+
+        except DoesNotExist:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=["Document not found"],
+            )
+        except Exception as e:
+            logging.error(f"Error fetching document: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=["Error fetching document", str(e)],
+            )
+
     async def update_document(
         self, document_update: DocumentUpdate
     ) -> DocumentResponse:

@@ -31,14 +31,14 @@ async def get_users():
 
 
 @router.get(
-    "/{user_id}", response_model=UserResponse, summary="Retrieve a single user by ID"
+    "/{email}", response_model=UserResponse, summary="Retrieve a single user by ID"
 )
-async def get_user(user_id: int):
+async def get_user(email: str):
     """
-    Get a user's details by their ID.
-    - **user_id**: The unique identifier for the user.
+    Get a user's details by their Email.
+    - **email**: The unique identifier for the user.
     """
-    return await user_controller.get_user(user_id)
+    return await user_controller.get_user(email)
 
 
 @router.put(
