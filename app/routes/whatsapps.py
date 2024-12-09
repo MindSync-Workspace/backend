@@ -22,6 +22,20 @@ async def connect_whatsapp(whatsapp_data: WhatsappUpdate):
     return await whatsapp_controller.connect_whatsapp_to_account(whatsapp_data)
 
 
+@router.get(
+    "/secret-key/{user_id}",
+    response_model=WhatsappResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Get Secret Key by User ID",
+)
+async def get_secret_key(user_id: int):
+    """
+    Endpoint to get secret key.
+    - **user_id**: The unique user ID.
+    """
+    return await whatsapp_controller.get_secret_key_by_user_id(user_id)
+
+
 @router.delete(
     "",
     status_code=status.HTTP_200_OK,

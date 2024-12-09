@@ -30,6 +30,34 @@ class WhatsappController:
                 detail=["Terjadi error saat membuat whatsapp", str(e)],
             )
 
+    async def get_secret_key_by_user_id(self, user_id: int):
+        try:
+            whatsapp = await Whatsapps.filter(user_id=user_id).first()
+
+            if not whatsapp:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=[f"Akun dengan ID {user_id} tidak ditemukan"],
+                )
+            whatsapp_data = await WhatsappPydantic.from_tortoise_orm(whatsapp)
+            # whatsapp_dict = whatsapp_data.model_dump()
+
+            return create_response(
+                status_code=status.HTTP_200_OK,
+                message="Berhasil mendapatkan secret key",
+                data=whatsapp_data.model_dump(),
+            )
+
+        except HTTPException as http_exc:
+            raise http_exc
+
+        except Exception as e:
+            logging.error(f"Error saat mengambil secret key: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=["Error saat mengambil secret key", str(e)],
+            )
+
     async def connect_whatsapp_to_account(self, whatsapp_data: WhatsappUpdate):
         try:
 

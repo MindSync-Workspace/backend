@@ -3,6 +3,11 @@ from typing import Optional
 from datetime import datetime
 
 
+class MetaResponse(BaseModel):
+    status: int
+    message: str
+
+
 class WhatsappCreate(BaseModel):
     user_id: int
     org_id: Optional[int] = None
@@ -15,7 +20,7 @@ class WhatsappUpdate(BaseModel):
     secret_key: Optional[str] = None
 
 
-class WhatsappResponse(BaseModel):
+class WhatsappData(BaseModel):
     id: int
     user_id: int
     number: Optional[str] = None
@@ -23,3 +28,8 @@ class WhatsappResponse(BaseModel):
     secret_key: Optional[str] = None
     created_at: datetime
     modified_at: datetime
+
+
+class WhatsappResponse(BaseModel):
+    meta: MetaResponse
+    data: WhatsappData
