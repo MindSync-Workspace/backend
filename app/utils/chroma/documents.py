@@ -1,14 +1,13 @@
-# utils/chroma/documents.py
 from app.utils.chroma.index import get_client
 from app.utils.vertex import get_embedding_function
-from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
+from langchain_community.document_loaders.pdf import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from langchain_chroma import Chroma
 
 
 def load_documents(path: str):
-    document_loader = PyPDFDirectoryLoader(path)
+    document_loader = PyMuPDFLoader(path)
     return document_loader.load()
 
 
@@ -23,7 +22,7 @@ def split_documents(documents: list[Document]):
     return text_splitter.split_documents(documents)
 
 
-async def add_docs_to_new_collection(document_id: int, chunks: list[Document]):
+async def add_docs_to_new_collection(chunks: list[Document]):
     db = Chroma(client=get_client(), embedding_function=get_embedding_function())
 
     chunks_with_ids = calculate_chunk_ids(chunks)
@@ -74,8 +73,3 @@ def calculate_chunk_ids(chunks):
         chunk.metadata["id"] = chunk_id
 
     return chunks
-
-
-documents = load_documents("../document.pdf")
-chunks = split_documents(documents)
-add_docs_to_new_collection(chunks)

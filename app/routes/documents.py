@@ -9,6 +9,11 @@ from app.schemas.documents import (
 )
 from typing import Optional
 from app.utils.response import create_response
+from app.utils.chroma.documents import (
+    load_documents,
+    add_docs_to_new_collection,
+    split_documents,
+)
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 document_controller = DocumentController()
@@ -37,6 +42,7 @@ async def upload_document(
 
     return await document_controller.upload_document(document_data, file)
 
+
 # Get Document By Id
 @router.get(
     "/{document_id}",
@@ -50,6 +56,7 @@ async def get_document(document_id: int):
     - **document_id**: The ID of the document to retrieve.
     """
     return await document_controller.get_document_by_id(document_id)
+
 
 # Update Document
 @router.put(
@@ -134,3 +141,29 @@ async def upload_document_from_whatsapp(
     return await document_controller.upload_document_by_whatsapp_number(
         document_data, file
     )
+
+
+@router.get(
+    "/test/test",
+    response_model={},
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload and encrypt a new document (**BOT**)",
+)
+async def upload_document_from_whatsapp(
+    # number: str = Form(...), title: str = Form(...), file: UploadFile = File(...)
+):
+    """
+    Upload a new document, encrypt it, and save its metadata.
+    - **number**: The unique whatsapp number.
+    - **title**: The title of the document.
+    - **file**: The document file to upload.
+    """
+    try:
+        documents = load_documents("app\\utils\\document.pdf")
+
+        chunks = split_documents(documents)
+        await add_docs_to_new_collection(chunks)
+
+        return create_response(status_code=200, message="Berhasil", data={})
+    except Exception as e:
+        print(e)
