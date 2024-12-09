@@ -37,6 +37,19 @@ async def upload_document(
 
     return await document_controller.upload_document(document_data, file)
 
+# Get Document By Id
+@router.get(
+    "/{document_id}",
+    response_model=DocumentResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get a document by its ID",
+)
+async def get_document(document_id: int):
+    """
+    Retrieve a document's details by its ID.
+    - **document_id**: The ID of the document to retrieve.
+    """
+    return await document_controller.get_document_by_id(document_id)
 
 # Update Document
 @router.put(
