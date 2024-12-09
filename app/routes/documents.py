@@ -13,6 +13,7 @@ from app.utils.chroma.documents import (
     load_documents,
     add_docs_to_new_collection,
     split_documents,
+    reset_database,
 )
 
 from app.utils.rag.rag import get_chat_response_from_model
@@ -164,12 +165,16 @@ async def upload_document_from_whatsapp(
         # documents = load_documents("app\\utils\\document.pdf")
 
         # chunks = split_documents(documents)
-        # await add_docs_to_new_collection(chunks)
+        # await add_docs_to_new_collection(chunks, 1)
 
         #
-        response = await get_chat_response_from_model("Who is the author?")
+        reset_database()
+        # response = get_chat_response_from_model(
+        #     "Maksud penelitian ini,jawab dengan 20 kata maksimal",
+        #     1,
+        # )
         return create_response(
-            status_code=200, message="Berhasil", data={"response": response}
+            status_code=200, message="Berhasil", data={"response": "Berhasil hapus"}
         )
     except Exception as e:
         print(e)

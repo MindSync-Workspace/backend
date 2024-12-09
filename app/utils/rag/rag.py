@@ -1,6 +1,6 @@
 # from langflow.load import run_flow_from_json
 import argparse
-from langchain.vectorstores.chroma import Chroma
+from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
 from app.utils.vertex import get_embedding_function
 from app.utils.chroma.index import get_client
@@ -8,32 +8,33 @@ from langchain_google_vertexai import VertexAI
 
 
 PROMPT_TEMPLATE = """
-Hanya jawab pertanyaan berdasarkan context ini:
+Anda adalah bot AI yang dirancang untuk membantu pengguna dengan menjelaskan dokumen atau memberikan jawaban terkait topik yang diberikan dengan gaya bahasa yang santai namun tetap profesional.
+PANDUAN:
+- Berikan penjelasan yang jelas dan mudah dipahami, seperti berbicara dengan teman namun tetap terkesan profesional.
+- Fokus untuk menjawab pertanyaan atau menjelaskan isi dokumen sesuai permintaan tanpa membuatnya terlalu rumit.
+- Jika dokumen atau pertanyaan kurang jelas, sampaikan dengan sopan bahwa informasi yang tersedia tidak cukup untuk memberikan penjelasan lebih lanjut.
+- Hindari menggunakan istilah yang terlalu formal atau teknis, tetapi tetap menjaga kejelasan dan keseriusan informasi.
+- Sampaikan informasi penting dengan cara yang mudah dipahami, tanpa menambah informasi yang tidak relevan.
+- Hanya Jawab dengan menggunakan bahasa indonesia,tanpa prefix seperti (Oh saya bisa melakukanya,berdasarkan konteks yang anda berikan,dsb)
+- Jawab to the point tanpa penambahan seperti,(ada lagi yang bisa saya jawab,Dari yang saya pahami dan sebagainya)
 
 {context}
 
 ---
+Berikut pertanyaan yang perlu anda tanggapi: {question}
 
-Jawab pertanyaan dari context diatas: {question}
 """
 
 
-def get_chat_response_from_model(text: str):
-
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("query_text", type=str, help="The query text.")
-    # args = parser.parse_args()
-    # query_text = args.query_text
-    return query_rag(text)
-
-
-def query_rag(query_text: str):
+def get_chat_response_from_model(query_text: str, document_id: int):
     # Prepare the DB.
     embedding_function = get_embedding_function()
     db = Chroma(client=get_client(), embedding_function=embedding_function)
 
     # Search the DB.
-    results = db.similarity_search_with_score(query_text, k=5)
+    results = db.similarity_search_with_score(
+        query_text, k=5, filter={"document_id": document_id}
+    )
 
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)

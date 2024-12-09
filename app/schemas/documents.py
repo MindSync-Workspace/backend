@@ -23,6 +23,7 @@ class DocumentData(BaseModel):
     summary: Optional[str]
     file_path: str
     file_size: int
+    file_id: str
     created_at: datetime
     updated_at: datetime
 

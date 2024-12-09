@@ -20,6 +20,11 @@ import logging
 from app.utils.encrypt import encrypt_document_aes, decrypt_document_aes
 from app.utils.get_user_id import get_user_id_by_whatsapp_number
 from dotenv import load_dotenv
+from app.utils.chroma.documents import (
+    load_documents_from_file,
+    add_docs_to_new_collection,
+    split_documents,
+)
 
 load_dotenv()
 
@@ -56,13 +61,15 @@ class DocumentController:
             file_name = file.filename
 
             # Extract file extension (e.g., .pdf, .jpg)
-            extension_type = Path(file_name).suffix.lstrip('.')  # Remove leading dot
+            extension_type = Path(file_name).suffix.lstrip(".")  # Remove leading dot
 
             # Encrypt the file
             encrypted_data = encrypt_document_aes(file_data, encryption_key)
 
             # Save only the encrypted file
-            encrypted_file_path = Path("media") / (file_name + ".enc")  # Store encrypted version with '.enc' extension
+            encrypted_file_path = Path("media") / (
+                file_name + ".enc"
+            )  # Store encrypted version with '.enc' extension
             with open(encrypted_file_path, "wb") as f:
                 f.write(encrypted_data)  # Save the encrypted data
 
@@ -70,9 +77,10 @@ class DocumentController:
             doc_dict = document_data.model_dump()
             doc_dict["file_path"] = str(encrypted_file_path)  # Path to encrypted file
             doc_dict["file_size"] = len(file_data)  # Size of the encrypted file
-            doc_dict["encryption_key"] = encryption_key_base64  # Store the base64-encoded encryption key
+            doc_dict["encryption_key"] = (
+                encryption_key_base64  # Store the base64-encoded encryption key
+            )
             doc_dict["extension_type"] = extension_type  # Store the file extension type
-
             # Create the document entry in the database
             doc_obj = await Documents.create(**doc_dict)
 
@@ -80,10 +88,16 @@ class DocumentController:
             doc_data = await DocumentPydantic.from_tortoise_orm(doc_obj)
             # Remove unwanted fields before sending the response
             response_data = doc_data.model_dump()
-            response_data.pop('file_path', None)
-            response_data.pop('encryption_key', None)
-            response_data.pop('file_size', None)
-            response_data.pop('extension_type', None)
+            response_data.pop("file_path", None)
+            response_data.pop("encryption_key", None)
+            response_data.pop("file_size", None)
+            response_data.pop("extension_type", None)
+
+            documents = load_documents_from_file(file_data, file_name)
+            chunks = split_documents(documents)
+            await add_docs_to_new_collection(
+                chunks, document_data.user_id, response_data["id"]
+            )
 
             return create_response(
                 status_code=status.HTTP_201_CREATED,

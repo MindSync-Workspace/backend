@@ -4,7 +4,7 @@ from app.schemas.chats import ChatCreate, ChatUpdate
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.utils.response import create_response
 import logging
-
+from app.utils.rag.rag import get_chat_response_from_model
 
 ChatPydantic = pydantic_model_creator(Chats, name="Chat")
 
@@ -17,7 +17,9 @@ class ChatController:
             chat_obj = await Chats.create(**chat_dict)
             chat_data = await ChatPydantic.from_tortoise_orm(chat_obj)
 
-            bot_response_text = "Ini Bot response"
+            bot_response_text = get_chat_response_from_model(
+                chat_dict["text"], chat_dict["document_id"]
+            )
 
             bot_chat_data = {
                 "document_id": chat_dict["document_id"],
@@ -32,7 +34,7 @@ class ChatController:
 
             return create_response(
                 status_code=status.HTTP_201_CREATED,
-                message="Ini response bot",
+                message="Berhasil mendapatkan response model",
                 data=bot_chat_data.model_dump(),
             )
         except Exception as e:
