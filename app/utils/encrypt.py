@@ -25,6 +25,8 @@ def encrypt_document_aes(file_data: bytes, key: bytes) -> bytes:
         logging.error(f"Error encrypting document with AES: {e}")
         raise Exception("Error encrypting the document with AES")
     
+from cryptography.hazmat.primitives import padding
+
 def decrypt_document_aes(encrypted_data: bytes, key_base64: str) -> bytes:
     try:
         # Decode the base64-encoded key back to bytes
@@ -33,18 +35,20 @@ def decrypt_document_aes(encrypted_data: bytes, key_base64: str) -> bytes:
         if len(key) != 32:
             raise Exception("Invalid encryption key size, must be 32 bytes for AES-256")
 
-        iv = encrypted_data[:16]  # The first 16 bytes are the IV
+        # Extract the IV from the first 16 bytes
+        iv = encrypted_data[:16]
         cipher_data = encrypted_data[16:]  # The rest is the encrypted document data
 
         # Create AES cipher object in CBC mode
         cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
         decryptor = cipher.decryptor()
 
+        # Decrypt the document data
         decrypted_data = decryptor.update(cipher_data) + decryptor.finalize()
 
-        # Remove padding (16 bytes) from the decrypted document
-        padding_length = decrypted_data[-1]
-        return decrypted_data[:-padding_length]  # Remove padding
+        # Remove custom padding
+        padding_length = decrypted_data[-1]  # Padding length is the last byte
+        return decrypted_data[:-padding_length]  # Remove padding bytes
 
     except Exception as e:
         logging.error(f"Error decrypting document with AES: {e}")

@@ -24,7 +24,7 @@ POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
 POSTGRES_DB = os.getenv("POSTGRES_DB", "mindsync")
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    f"postgres://postgres:admin123@localhost:5432/mindsync",
+    f"postgres://postgres:postgres@localhost:5432/mindsync",
 )
 
 register_tortoise(

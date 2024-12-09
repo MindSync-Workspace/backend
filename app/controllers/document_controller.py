@@ -47,46 +47,48 @@ class DocumentController:
     async def upload_document(self, document_data: DocumentCreate, file: UploadFile):
         try:
             # Generate a random encryption key (AES-256)
-            # encryption_key = os.urandom(32)
+            encryption_key = os.urandom(32)
 
             # # Encode the encryption key to base64
-            # encryption_key_base64 = base64.b64encode(encryption_key).decode("utf-8")
+            encryption_key_base64 = base64.b64encode(encryption_key).decode("utf-8")
 
-            # Read file data
             file_data = await file.read()
             file_name = file.filename
 
+            # Extract file extension (e.g., .pdf, .jpg)
+            extension_type = Path(file_name).suffix.lstrip('.')  # Remove leading dot
+
             # Encrypt the file
-            # encrypted_data = encrypt_document_aes(file_data, encryption_key)
+            encrypted_data = encrypt_document_aes(file_data, encryption_key)
 
             # Save only the encrypted file
-            encrypted_file_path = Path("media") / (
-                file_name
-            )  # Store encrypted version with '.enc' extension
+            encrypted_file_path = Path("media") / (file_name + ".enc")  # Store encrypted version with '.enc' extension
             with open(encrypted_file_path, "wb") as f:
-                f.write(file_data)
+                f.write(encrypted_data)  # Save the encrypted data
 
             # Prepare document metadata to store in the database
             doc_dict = document_data.model_dump()
             doc_dict["file_path"] = str(encrypted_file_path)  # Path to encrypted file
             doc_dict["file_size"] = len(file_data)  # Size of the encrypted file
-            doc_dict["encryption_key"] = (
-                "Asasa"  # Store the base64-encoded encryption key
-            )
-
-            # doc_dict["encryption_key"] = (
-            #     encryption_key_base64  # Store the base64-encoded encryption key
-            # )
+            doc_dict["encryption_key"] = encryption_key_base64  # Store the base64-encoded encryption key
+            doc_dict["extension_type"] = extension_type  # Store the file extension type
 
             # Create the document entry in the database
             doc_obj = await Documents.create(**doc_dict)
 
             # Serialize the document data to return in the response
             doc_data = await DocumentPydantic.from_tortoise_orm(doc_obj)
+            # Remove unwanted fields before sending the response
+            response_data = doc_data.model_dump()
+            response_data.pop('file_path', None)
+            response_data.pop('encryption_key', None)
+            response_data.pop('file_size', None)
+            response_data.pop('extension_type', None)
+
             return create_response(
                 status_code=status.HTTP_201_CREATED,
                 message="Document berhasil diupload",
-                data=doc_data.model_dump(),
+                data=response_data,
             )
 
         except Exception as e:
@@ -231,6 +233,7 @@ class DocumentController:
             # Get the encrypted file path, encryption key, and the original file extension from the database
             encrypted_file_path = Path(doc.file_path)
             encryption_key = doc.encryption_key
+            extension_type = doc.extension_type
 
             # Ensure the encryption key is in bytes format (if it's a string, convert it to bytes)
             if isinstance(encryption_key, str):
@@ -255,7 +258,7 @@ class DocumentController:
 
             # Prepare headers for Content-Disposition with filename
             headers = {
-                "Content-Disposition": f"attachment; filename=document_{document_id}.pdf"
+                "Content-Disposition": f"attachment; filename=document_{document_id}.{extension_type}"
             }
 
             # Return the decrypted file for download with the correct MIME type

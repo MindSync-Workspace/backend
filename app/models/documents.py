@@ -11,6 +11,7 @@ class Documents(models.Model):
     file_path = fields.CharField(max_length=255)
     encryption_key = fields.CharField(max_length=500, null=True)
     file_size = fields.IntField(null=True)
+    extension_type = fields.CharField(max_length=10, null=True)
     user = fields.ForeignKeyField("models.Users", related_name="documents", null=True)
 
     created_at = fields.DatetimeField(auto_now_add=True)
