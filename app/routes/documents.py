@@ -15,6 +15,8 @@ from app.utils.chroma.documents import (
     split_documents,
 )
 
+from app.utils.rag.rag import get_chat_response_from_model
+
 router = APIRouter(prefix="/documents", tags=["Documents"])
 document_controller = DocumentController()
 
@@ -159,11 +161,15 @@ async def upload_document_from_whatsapp(
     - **file**: The document file to upload.
     """
     try:
-        documents = load_documents("app\\utils\\document.pdf")
+        # documents = load_documents("app\\utils\\document.pdf")
 
-        chunks = split_documents(documents)
-        await add_docs_to_new_collection(chunks)
+        # chunks = split_documents(documents)
+        # await add_docs_to_new_collection(chunks)
 
-        return create_response(status_code=200, message="Berhasil", data={})
+        #
+        response = await get_chat_response_from_model("Who is the author?")
+        return create_response(
+            status_code=200, message="Berhasil", data={"response": response}
+        )
     except Exception as e:
         print(e)
