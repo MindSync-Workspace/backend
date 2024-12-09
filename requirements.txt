@@ -40,6 +40,8 @@ cuid==0.4
 cryptography==43.0.3
 google==3.0.0
 google-cloud-kms==2.11.0
-pymupdf
-docx
-langflow
+# pymupdf
+# docx
+# langflow
+langchain_community
+langchain_google_vertexai

@@ -90,6 +90,7 @@ class DocumentController:
             )
 
         except Exception as e:
+
             logging.error(f"Error saat mengupload document: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -277,7 +278,11 @@ class DocumentController:
             user_id = await get_user_id_by_whatsapp_number(document_data.number)
             document_data.user_id = user_id
 
-            return self.upload_document(document_data, file)
+            return await self.upload_document(document_data, file)
+
+        except HTTPException as http_exc:
+            raise http_exc
+
         except Exception as e:
             logging.error(f"Error saat mengupload document: {e}")
             raise HTTPException(

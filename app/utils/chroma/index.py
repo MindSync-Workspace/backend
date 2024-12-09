@@ -1,6 +1,7 @@
 import chromadb
 from chromadb.config import Settings
 
+
 client = chromadb.HttpClient(
     host="https://chroma-3650861314.asia-east1.run.app",
     port=443,

@@ -1,22 +1,81 @@
 # utils/chroma/documents.py
-from .index import get_client
+from app.utils.chroma.index import get_client
+from app.utils.vertex import get_embedding_function
+from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain.schema.document import Document
+from langchain_chroma import Chroma
 
-client = get_client()
+
+def load_documents(path: str):
+    document_loader = PyPDFDirectoryLoader(path)
+    return document_loader.load()
 
 
-async def add_docs_to_new_collection(
-    document_id: str, text: str, metadata: dict = None
-):
-    """Menambahkan dokumen ke koleksi dengan ID khusus"""
-    documents_collection = client.create_collection(
-        name=f"documents_{document_id}",
-        # Anda bisa menetapkan fungsi embedding di sini jika diperlukan
-        # embedding_function=...
+def split_documents(documents: list[Document]):
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1500,
+        chunk_overlap=300,
+        length_function=len,
+        is_separator_regex=False,
     )
-    documents_collection.upsert(
-        ids=[str(document_id)],
-        documents=[text],
-        metadatas=[metadata or {}],
-    )
 
-    print(f"Dokumen {document_id} berhasil ditambahkan.")
+    return text_splitter.split_documents(documents)
+
+
+async def add_docs_to_new_collection(document_id: int, chunks: list[Document]):
+    db = Chroma(client=get_client(), embedding_function=get_embedding_function())
+
+    chunks_with_ids = calculate_chunk_ids(chunks)
+
+    existing_items = db.get(include=[])  # IDs are always included by default
+    existing_ids = set(existing_items["ids"])
+    print(f"Number of existing documents in DB: {len(existing_ids)}")
+
+    new_chunks = []
+    for chunk in chunks_with_ids:
+        if chunk.metadata["id"] not in existing_ids:
+            new_chunks.append(chunk)
+
+    if len(new_chunks):
+        print(f"👉 Adding new documents: {len(new_chunks)}")
+        new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
+        db.add_documents(new_chunks, ids=new_chunk_ids)
+    else:
+        print("✅ No new documents to add")
+
+    db.add_documents()
+
+
+def calculate_chunk_ids(chunks):
+
+    # This will create IDs like "data/monopoly.pdf:6:2"
+    # Page Source : Page Number : Chunk Index
+
+    last_page_id = None
+    current_chunk_index = 0
+
+    for chunk in chunks:
+        source = chunk.metadata.get("source")
+        page = chunk.metadata.get("page")
+        current_page_id = f"{source}:{page}"
+
+        # If the page ID is the same as the last one, increment the index.
+        if current_page_id == last_page_id:
+            current_chunk_index += 1
+        else:
+            current_chunk_index = 0
+
+        # Calculate the chunk ID.
+        chunk_id = f"{current_page_id}:{current_chunk_index}"
+        last_page_id = current_page_id
+
+        # Add it to the page meta-data.
+        chunk.metadata["id"] = chunk_id
+
+    return chunks
+
+
+documents = load_documents("../document.pdf")
+chunks = split_documents(documents)
+add_docs_to_new_collection(chunks)
