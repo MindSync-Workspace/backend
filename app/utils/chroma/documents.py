@@ -43,8 +43,6 @@ async def add_docs_to_new_collection(chunks: list[Document]):
     else:
         print("✅ No new documents to add")
 
-    db.add_documents()
-
 
 def calculate_chunk_ids(chunks):
 
