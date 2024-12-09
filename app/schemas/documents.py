@@ -15,7 +15,8 @@ class DocumentCreate(BaseModel):
     summary: Optional[str] = None
     org_id: Optional[str] = None
 
-class DocumentResponse(BaseModel):
+
+class DocumentData(BaseModel):
     id: int
     user_id: int
     title: str
@@ -25,20 +26,12 @@ class DocumentResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class DocumentUpdate(BaseModel):
     id: int
     user_id: int
     org_id: Optional[str] = None
     title: Optional[str] = None
-
-
-class DocumentData(BaseModel):
-    id: int
-    user_id: int
-    org_id: str
-    title: str
-    summary: str
-    file_path: str
 
 
 class DocumentResponse(BaseModel):
