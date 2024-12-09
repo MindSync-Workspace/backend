@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, status, UploadFile, Form, File
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, status, UploadFile, Form, File
+
 from app.controllers.document_controller import DocumentController
 from app.schemas.documents import (
     DocumentCreate,
@@ -7,16 +7,12 @@ from app.schemas.documents import (
     DocumentResponse,
     DocumentsResponse,
 )
-from typing import Optional
+
 from app.utils.response import create_response
 from app.utils.chroma.documents import (
-    load_documents,
-    add_docs_to_new_collection,
-    split_documents,
     reset_database,
 )
 
-from app.utils.rag.rag import get_chat_response_from_model
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 document_controller = DocumentController()
@@ -39,9 +35,7 @@ async def upload_document(
     - **file**: The document file to upload.
     """
 
-    document_data = DocumentCreate(
-        user_id=user_id, title=title, summary="tteeeesssstttt"
-    )
+    document_data = DocumentCreate(user_id=user_id, title=title)
 
     return await document_controller.upload_document(document_data, file)
 

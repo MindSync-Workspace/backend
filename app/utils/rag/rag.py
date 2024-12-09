@@ -5,7 +5,7 @@ from langchain.prompts import ChatPromptTemplate
 from app.utils.vertex import get_embedding_function
 from app.utils.chroma.index import get_client
 from langchain_google_vertexai import VertexAI
-
+import pprint
 
 PROMPT_TEMPLATE = """
 Anda adalah bot AI yang dirancang untuk membantu pengguna dengan menjelaskan dokumen atau memberikan jawaban terkait topik yang diberikan dengan gaya bahasa yang santai namun tetap profesional.
@@ -48,6 +48,70 @@ def get_chat_response_from_model(query_text: str, document_id: int):
     formatted_response = f"Response: {response_text}\nSources: {sources}"
     print(formatted_response)
     return response_text
+
+
+SUMMARIZE_PROMPT_TEMPLATE = """Anda adalah asisten AI untuk meringkas teks yang terintegrasi dalam alat pengolah dokumen. Tugas Anda adalah membantu pengguna meringkas teks panjang menjadi ringkasan singkat yang mencakup poin-poin utama dan detail penting
+    PANDUAN:
+    - Ringkas teks yang diberikan pengguna dengan panjang maksimal 150 kata (lebih sedikit lebih baik).
+    - Fokus pada ide utama dan hilangkan detail yang tidak penting.
+    - Hindari menambahkan informasi baru atau opini pribadi.
+    - Jika teks tidak cukup jelas untuk diringkas, sampaikan dengan sopan bahwa informasi yang tersedia tidak mencukupi.
+    - Tetap relevan, jelas, dan singkat dalam respons Anda.
+    - Hanya jawab dengan hasil ringkasan tanpa ada embel embel seperti "Ini jawabannya", "Baiklah"
+    Berikut teks yang perlu diringkas:
+    {context}
+    """
+
+
+def get_summarize_text(document_id: int, user_id: int):
+
+    # Persiapkan DB.
+    embedding_function = get_embedding_function()
+    db = Chroma(client=get_client(), embedding_function=embedding_function)
+
+    # Ambil semua dokumen berdasarkan document_id.
+    results = db.get(where={"user_id": user_id})
+
+    filtered_chunks = get_documents_by_document_id(results, document_id)
+
+    if len(filtered_chunks) == 0:
+        print("❌ Tidak ada dokumen dengan document_id yang diminta.")
+        return "Tidak ada dokumen yang ditemukan untuk document_id tersebut."
+    print(len(filtered_chunks))
+    # Gabungkan konten dari semua dokumen untuk membuat konteks.
+    context_text = "\n\n---\n\n".join(filtered_chunks)
+
+    # Tentukan prompt untuk model
+    prompt_template = ChatPromptTemplate.from_template(SUMMARIZE_PROMPT_TEMPLATE)
+    prompt = prompt_template.format(context=context_text)
+
+    # Gunakan model untuk merangkum teks
+    model = VertexAI(model_name="gemini-1.0-pro-002")
+    response_text = model.invoke(prompt)
+
+    # Format dan kembalikan hasil ringkasan
+
+    print(response_text)
+    return response_text
+
+
+def get_documents_by_document_id(chunks, document_id: int):
+    print(chunks["metadatas"])
+    if not chunks.get("documents") or not chunks.get("metadatas"):
+        return []
+
+    # Menggabungkan dokumen dengan metadata
+    documents = chunks["documents"]
+    metadatas = chunks["metadatas"]
+
+    # Filter dokumen berdasarkan metadata document_id
+    filtered_documents = [
+        doc
+        for doc, meta in zip(documents, metadatas)
+        if meta.get("document_id") == document_id
+    ]
+
+    return filtered_documents
 
 
 # def get_chat_response_from_model(text: str):

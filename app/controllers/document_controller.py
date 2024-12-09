@@ -25,6 +25,7 @@ from app.utils.chroma.documents import (
     add_docs_to_new_collection,
     split_documents,
 )
+from app.utils.rag.rag import get_summarize_text
 
 load_dotenv()
 
@@ -95,8 +96,22 @@ class DocumentController:
 
             documents = load_documents_from_file(file_data, file_name)
             chunks = split_documents(documents)
+
             await add_docs_to_new_collection(
                 chunks, document_data.user_id, response_data["id"]
+            )
+
+            summary = """get_summarize_text(
+                response_data["id"],
+                document_data.user_id,
+            )"""
+
+            await self.update_document(
+                DocumentUpdate(
+                    id=response_data["id"],
+                    user_id=document_data.user_id,
+                    summary=summary,
+                )
             )
 
             return create_response(
@@ -165,7 +180,7 @@ class DocumentController:
 
             return create_response(
                 status_code=status.HTTP_200_OK,
-                message="Document updated successfully",
+                message="Berhasil update dokumen",
                 data=doc_data.model_dump(),
             )
 

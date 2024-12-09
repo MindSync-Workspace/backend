@@ -31,6 +31,7 @@ class DocumentData(BaseModel):
 class DocumentUpdate(BaseModel):
     id: int
     user_id: int
+    summary: Optional[str] = None
     org_id: Optional[str] = None
     title: Optional[str] = None
 
