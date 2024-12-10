@@ -25,7 +25,7 @@ from app.utils.chroma.documents import (
     add_docs_to_new_collection,
     split_documents,
 )
-from app.utils.rag.rag import get_summarize_text
+from app.utils.rag.rag import do_summarize_text
 
 load_dotenv()
 
@@ -96,15 +96,14 @@ class DocumentController:
 
             documents = load_documents_from_file(file_data, file_name)
             chunks = split_documents(documents)
-
             await add_docs_to_new_collection(
                 chunks, document_data.user_id, response_data["id"]
             )
 
-            summary = """get_summarize_text(
-                response_data["id"],
-                document_data.user_id,
-            )"""
+            summary = do_summarize_text(
+                chunks,
+            )
+            response_data["summary"] = summary
 
             await self.update_document(
                 DocumentUpdate(

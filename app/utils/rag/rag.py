@@ -5,7 +5,8 @@ from langchain.prompts import ChatPromptTemplate
 from app.utils.vertex import get_embedding_function
 from app.utils.chroma.index import get_client
 from langchain_google_vertexai import VertexAI
-import pprint
+from pprint import pprint
+from langchain.schema.document import Document
 
 PROMPT_TEMPLATE = """
 Anda adalah bot AI yang dirancang untuk membantu pengguna dengan menjelaskan dokumen atau memberikan jawaban terkait topik yang diberikan dengan gaya bahasa yang santai namun tetap profesional.
@@ -63,55 +64,18 @@ SUMMARIZE_PROMPT_TEMPLATE = """Anda adalah asisten AI untuk meringkas teks yang 
     """
 
 
-def get_summarize_text(document_id: int, user_id: int):
+def do_summarize_text(chunks: list[Document]):
+    new_chunks = [chunk.page_content for chunk in chunks]
 
-    # Persiapkan DB.
-    embedding_function = get_embedding_function()
-    db = Chroma(client=get_client(), embedding_function=embedding_function)
+    context_text = "\n".join(new_chunks)
 
-    # Ambil semua dokumen berdasarkan document_id.
-    results = db.get(where={"user_id": user_id})
-
-    filtered_chunks = get_documents_by_document_id(results, document_id)
-
-    if len(filtered_chunks) == 0:
-        print("❌ Tidak ada dokumen dengan document_id yang diminta.")
-        return "Tidak ada dokumen yang ditemukan untuk document_id tersebut."
-    print(len(filtered_chunks))
-    # Gabungkan konten dari semua dokumen untuk membuat konteks.
-    context_text = "\n\n---\n\n".join(filtered_chunks)
-
-    # Tentukan prompt untuk model
     prompt_template = ChatPromptTemplate.from_template(SUMMARIZE_PROMPT_TEMPLATE)
     prompt = prompt_template.format(context=context_text)
 
-    # Gunakan model untuk merangkum teks
     model = VertexAI(model_name="gemini-1.0-pro-002")
     response_text = model.invoke(prompt)
 
-    # Format dan kembalikan hasil ringkasan
-
-    print(response_text)
     return response_text
-
-
-def get_documents_by_document_id(chunks, document_id: int):
-    print(chunks["metadatas"])
-    if not chunks.get("documents") or not chunks.get("metadatas"):
-        return []
-
-    # Menggabungkan dokumen dengan metadata
-    documents = chunks["documents"]
-    metadatas = chunks["metadatas"]
-
-    # Filter dokumen berdasarkan metadata document_id
-    filtered_documents = [
-        doc
-        for doc, meta in zip(documents, metadatas)
-        if meta.get("document_id") == document_id
-    ]
-
-    return filtered_documents
 
 
 # def get_chat_response_from_model(text: str):
