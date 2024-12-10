@@ -47,6 +47,7 @@ async def add_docs_to_new_collection(
     for chunk in chunks:
         chunk.metadata["user_id"] = user_id
 
+    ## Validasi buat ngecek apakah document sudah pernah diupload
     chunks_with_ids = calculate_chunk_ids(chunks)
 
     existing_items = db.get(
@@ -66,7 +67,7 @@ async def add_docs_to_new_collection(
     if len(new_chunks):
         print(f"👉 Adding new documents: {len(new_chunks)}")
         for chunk in new_chunks:
-            chunk.metadata["document_id"] = document_id
+            chunk.metadata["document_id"] = str(document_id)
 
         new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
         db.add_documents(new_chunks, ids=new_chunk_ids)

@@ -1,12 +1,15 @@
 from fastapi import HTTPException, status
 from app.models.chats import Chats
-from app.schemas.chats import ChatCreate, ChatUpdate
+from app.models.documents import Documents
+from app.schemas.chats import ChatCreate, ChatUpdate, ChatCreateWhatsapp
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.utils.response import create_response
 import logging
 from app.utils.rag.rag import get_chat_response_from_model
+from app.utils.get_user_id import get_user_id_by_whatsapp_number
 
 ChatPydantic = pydantic_model_creator(Chats, name="Chat")
+DocumentPydantic = pydantic_model_creator(Documents, name="Document")
 
 
 class ChatController:
@@ -123,4 +126,28 @@ class ChatController:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=["Terjadi error saat menghapus chat", str(e)],
+            )
+
+    async def create_chat_and_get_bot_response_whatsapp(
+        self, chat_data: ChatCreateWhatsapp
+    ):
+        try:
+            user_id = await get_user_id_by_whatsapp_number(chat_data.number)
+            docs = Documents.filter(user_id=user_id).order_by("-created_at")
+            docs_data = await DocumentPydantic.from_queryset(docs)
+            print(docs_data)
+            doc_data = docs_data[0]
+            chat_data.user_id = user_id
+            chat_data.document_id = doc_data.id
+            print(chat_data)
+            return await self.create_chat_and_get_bot_response(chat_data)
+
+        except HTTPException as http_exc:
+            raise http_exc
+
+        except Exception as e:
+            logging.error(f"Error saat membuat chat: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=["Terjadi error saat membuat chat", str(e)],
             )

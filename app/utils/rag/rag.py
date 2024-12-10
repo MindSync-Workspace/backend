@@ -8,22 +8,42 @@ from langchain_google_vertexai import VertexAI
 from pprint import pprint
 from langchain.schema.document import Document
 
-PROMPT_TEMPLATE = """
-Anda adalah bot AI yang dirancang untuk membantu pengguna dengan menjelaskan dokumen atau memberikan jawaban terkait topik yang diberikan dengan gaya bahasa yang santai namun tetap profesional.
-PANDUAN:
-- Berikan penjelasan yang jelas dan mudah dipahami, seperti berbicara dengan teman namun tetap terkesan profesional.
-- Fokus untuk menjawab pertanyaan atau menjelaskan isi dokumen sesuai permintaan tanpa membuatnya terlalu rumit.
-- Jika dokumen atau pertanyaan kurang jelas, sampaikan dengan sopan bahwa informasi yang tersedia tidak cukup untuk memberikan penjelasan lebih lanjut.
-- Hindari menggunakan istilah yang terlalu formal atau teknis, tetapi tetap menjaga kejelasan dan keseriusan informasi.
-- Sampaikan informasi penting dengan cara yang mudah dipahami, tanpa menambah informasi yang tidak relevan.
-- Hanya Jawab dengan menggunakan bahasa indonesia,tanpa prefix seperti (Oh saya bisa melakukanya,berdasarkan konteks yang anda berikan,dsb)
-- Jawab to the point tanpa penambahan seperti,(ada lagi yang bisa saya jawab,Dari yang saya pahami dan sebagainya)
+# PROMPT_TEMPLATE = """
+# Anda adalah bot AI yang dirancang untuk membantu pengguna dengan menjelaskan dokumen atau memberikan jawaban terkait topik yang diberikan dengan gaya bahasa yang santai namun tetap profesional.
+# PANDUAN:
+# - Berikan penjelasan yang jelas dan mudah dipahami, seperti berbicara dengan teman namun tetap terkesan profesional.
+# - Fokus untuk menjawab pertanyaan atau menjelaskan isi dokumen sesuai permintaan tanpa membuatnya terlalu rumit.
+# - Jika dokumen atau pertanyaan kurang jelas, sampaikan dengan sopan bahwa informasi yang tersedia tidak cukup untuk memberikan penjelasan lebih lanjut.
+# - Hindari menggunakan istilah yang terlalu formal atau teknis, tetapi tetap menjaga kejelasan dan keseriusan informasi.
+# - Sampaikan informasi penting dengan cara yang mudah dipahami, tanpa menambah informasi yang tidak relevan.
+# - Hanya Jawab dengan menggunakan bahasa indonesia,tanpa prefix seperti (Oh saya bisa melakukanya,berdasarkan konteks yang anda berikan,dsb)
+# - Jawab to the point tanpa penambahan seperti,(ada lagi yang bisa saya jawab,Dari yang saya pahami dan sebagainya)
 
+# {context}
+
+# ---
+# Berikut pertanyaan yang perlu anda tanggapi: {question}
+
+# # """
+
+PROMPT_TEMPLATE = """Anda adalah chatbot yang membantu. Anda akan diberikan isi dari file PDF dan sebuah pertanyaan dari pengguna. Gunakan hanya informasi dari PDF yang diberikan untuk menjawab pertanyaan tersebut. Cantumkan nomor halaman tempat informasi ditemukan menggunakan format (halaman X). Jika PDF tidak mengandung informasi yang diperlukan untuk menjawab pertanyaan, katakan "Maaf, saya tidak dapat menemukan jawaban atas pertanyaan Anda dalam dokumen yang diberikan," tetapi coba jelaskan berdasarkan pengetahuan Anda. Berikan jawaban yang seinformatif mungkin.
+
+KONTEKS:
 {context}
 
----
-Berikut pertanyaan yang perlu anda tanggapi: {question}
+Pertanyaan:
+{question}
 
+Saat merespons, harap perhatikan:
+- Jadilah membantu, cerdas, dan artikulatif.
+- Gunakan konteks yang diberikan untuk menjawab.
+- Jika konteks tidak cukup untuk menjawab pertanyaan, sampaikan dengan sopan bahwa informasi tidak mencukupi.
+- Hindari meminta maaf atas tanggapan sebelumnya. Sebagai gantinya, nyatakan bahwa pengetahuan Anda telah diperbarui berdasarkan informasi baru.
+- Jangan mengarang atau berspekulasi tentang apa pun yang tidak didukung langsung oleh konteks.
+- Tetap singkat dan relevan dengan pertanyaan atau konteks yang diberikan.
+- Jawab dengan maksimal 150 kata.
+
+Jawaban:
 """
 
 
@@ -32,9 +52,8 @@ def get_chat_response_from_model(query_text: str, document_id: int):
     embedding_function = get_embedding_function()
     db = Chroma(client=get_client(), embedding_function=embedding_function)
 
-    # Search the DB.
     results = db.similarity_search_with_score(
-        query_text, k=5, filter={"document_id": document_id}
+        query_text, k=5, filter={"document_id": str(document_id)}
     )
 
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
