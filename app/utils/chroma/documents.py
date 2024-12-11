@@ -4,8 +4,7 @@ from langchain_community.document_loaders.pdf import PyMuPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from langchain_chroma import Chroma
-from io import BytesIO
-from cuid import cuid
+import os
 
 
 def load_documents(path: str):
@@ -14,13 +13,16 @@ def load_documents(path: str):
 
 
 def load_documents_from_file(file: bytes, filename: str):
-    # Simpan file ke lokasi sementara di memori
+
     with open(filename, "wb") as temp_file:
         temp_file.write(file)
 
-    # Load dokumen menggunakan PyMuPDFLoader
-    document_loader = PyMuPDFLoader(filename)
-    documents = document_loader.load()
+    try:
+        document_loader = PyMuPDFLoader(filename)
+        documents = document_loader.load()
+    finally:
+        if os.path.exists(filename):
+            os.remove(filename)
 
     return documents
 
