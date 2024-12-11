@@ -131,7 +131,6 @@ async def upload_document_from_whatsapp(
     - **title**: The title of the document.
     - **file**: The document file to upload.
     """
-    print(number, title)
 
     document_data = DocumentCreate(number=number, title=title, summary="tteeeesssstttt")
 
