@@ -48,7 +48,7 @@ class DocumentController:
         self.kms_client = kms.KeyManagementServiceClient(credentials=credentials)
         self.key_name = os.getenv("KMS_KEY_NAME")
         if not self.key_name:
-            raise Exception("KMS_KEY_NAME environment variable is not set.")
+            raise Exception("KMS_KEY_NAME environment variable tidak ditemukan.")
 
     async def upload_document(self, document_data: DocumentCreate, file: UploadFile):
         try:
