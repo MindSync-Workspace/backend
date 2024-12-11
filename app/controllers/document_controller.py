@@ -119,6 +119,9 @@ class DocumentController:
                 data=response_data,
             )
 
+        except HTTPException as http_exc:
+            raise http_exc
+
         except Exception as e:
 
             logging.error(f"Error saat mengupload document: {e}")

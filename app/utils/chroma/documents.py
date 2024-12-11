@@ -1,12 +1,17 @@
 from app.utils.chroma.index import get_client
 from app.utils.vertex import get_embedding_function
 from langchain_community.document_loaders.pdf import PyMuPDFLoader
-from langchain_community.document_loaders import Docx2txtLoader, TextLoader
+from langchain_community.document_loaders import (
+    Docx2txtLoader,
+    TextLoader,
+    UnstructuredPowerPointLoader,
+)
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from langchain_chroma import Chroma
 import os
+from fastapi import HTTPException, status
 
 
 def load_documents(path: str):
@@ -24,10 +29,19 @@ def load_documents_from_file(file: bytes, filename: str, extension_type: str):
                 document_loader = PyMuPDFLoader(filename)
             case "docx":
                 document_loader = Docx2txtLoader(filename)
+            case "pptx":
+                document_loader = UnstructuredPowerPointLoader(filename)
             case "txt":
                 document_loader = TextLoader(filename)
             case "md":
                 document_loader = TextLoader(filename)
+            case _:
+                raise HTTPException(
+                    status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                    detail=[
+                        "Maaf untuk sekarang hanya file yang berekstensi pdf|docx|pptx|txt|md yang support"
+                    ],
+                )
         documents = document_loader.load()
 
     finally:
