@@ -134,12 +134,13 @@ class ChatController:
         try:
             user_id = await get_user_id_by_whatsapp_number(chat_data.number)
             docs = Documents.filter(user_id=user_id).order_by("-created_at")
+
             docs_data = await DocumentPydantic.from_queryset(docs)
-            print(docs_data)
             doc_data = docs_data[0]
+
             chat_data.user_id = user_id
             chat_data.document_id = doc_data.id
-            print(chat_data)
+
             return await self.create_chat_and_get_bot_response(chat_data)
 
         except HTTPException as http_exc:

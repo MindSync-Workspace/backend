@@ -1,6 +1,8 @@
 from app.utils.chroma.index import get_client
 from app.utils.vertex import get_embedding_function
 from langchain_community.document_loaders.pdf import PyMuPDFLoader
+from langchain_community.document_loaders import Docx2txtLoader, TextLoader
+
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from langchain_chroma import Chroma
@@ -12,14 +14,22 @@ def load_documents(path: str):
     return document_loader.load()
 
 
-def load_documents_from_file(file: bytes, filename: str):
-
+def load_documents_from_file(file: bytes, filename: str, extension_type: str):
     with open(filename, "wb") as temp_file:
         temp_file.write(file)
 
     try:
-        document_loader = PyMuPDFLoader(filename)
+        match extension_type:
+            case "pdf":
+                document_loader = PyMuPDFLoader(filename)
+            case "docx":
+                document_loader = Docx2txtLoader(filename)
+            case "txt":
+                document_loader = TextLoader(filename)
+            case "md":
+                document_loader = TextLoader(filename)
         documents = document_loader.load()
+
     finally:
         if os.path.exists(filename):
             os.remove(filename)

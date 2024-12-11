@@ -94,7 +94,7 @@ class DocumentController:
             response_data.pop("file_size", None)
             response_data.pop("extension_type", None)
 
-            documents = load_documents_from_file(file_data, file_name)
+            documents = load_documents_from_file(file_data, file_name, extension_type)
             chunks = split_documents(documents)
             await add_docs_to_new_collection(
                 chunks, document_data.user_id, response_data["id"]

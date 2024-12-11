@@ -26,24 +26,23 @@ from langchain.schema.document import Document
 
 # # """
 
-PROMPT_TEMPLATE = """Anda adalah chatbot yang membantu. Anda akan diberikan isi dari file PDF dan sebuah pertanyaan dari pengguna. Gunakan hanya informasi dari PDF yang diberikan untuk menjawab pertanyaan tersebut. Cantumkan nomor halaman tempat informasi ditemukan menggunakan format (halaman X). Jika PDF tidak mengandung informasi yang diperlukan untuk menjawab pertanyaan, katakan "Maaf, saya tidak dapat menemukan jawaban atas pertanyaan Anda dalam dokumen yang diberikan," tetapi coba jelaskan berdasarkan pengetahuan Anda. Berikan jawaban yang seinformatif mungkin.
+PROMPT_TEMPLATE = """Kamu adalah chatbot yang membantu. Namamu adalah "MindSync," dan ingat itu. Kamu akan diberikan isi dari file PDF dan sebuah pertanyaan dari pengguna. Gunakan hanya informasi dari PDF yang diberikan untuk menjawab pertanyaan tersebut. Jika pertanyaannya di luar konteks PDF, jawablah dengan baik tanpa mengarang informasi. Cantumkan nomor halaman tempat informasi ditemukan menggunakan format (halaman X). Jika PDF tidak mengandung informasi yang diperlukan untuk menjawab pertanyaan, katakan dengan jelas, "Maaf, saya tidak dapat menemukan jawaban atas pertanyaan Kamu dalam dokumen yang diberikan." Jangan membuat jawaban yang tidak didukung oleh data dalam PDF.
 
-KONTEKS:
-{context}
+**KONTEKS:**
+{context}  
 
-Pertanyaan:
+**Pertanyaan:**
 {question}
 
 Saat merespons, harap perhatikan:
 - Jadilah membantu, cerdas, dan artikulatif.
-- Gunakan konteks yang diberikan untuk menjawab.
-- Jika konteks tidak cukup untuk menjawab pertanyaan, sampaikan dengan sopan bahwa informasi tidak mencukupi.
-- Hindari meminta maaf atas tanggapan sebelumnya. Sebagai gantinya, nyatakan bahwa pengetahuan Anda telah diperbarui berdasarkan informasi baru.
-- Jangan mengarang atau berspekulasi tentang apa pun yang tidak didukung langsung oleh konteks.
-- Tetap singkat dan relevan dengan pertanyaan atau konteks yang diberikan.
+- Gunakan hanya informasi dari konteks PDF untuk menjawab.
+- Jika konteks tidak cukup, sampaikan bahwa informasi tidak mencukupi tanpa mengarang jawaban.
+- Hindari permintaan maaf untuk respons sebelumnya. Sebaliknya, gunakan pengetahuan baru dari PDF untuk meningkatkan jawaban.
+- Tetap singkat, relevan, dan informatif.
 - Jawab dengan maksimal 150 kata.
 
-Jawaban:
+**Jawaban:**
 """
 
 
@@ -64,9 +63,8 @@ def get_chat_response_from_model(query_text: str, document_id: int):
     model = VertexAI(model_name="gemini-1.0-pro-002")
     response_text = model.invoke(prompt)
 
-    sources = [doc.metadata.get("id", None) for doc, _score in results]
-    formatted_response = f"Response: {response_text}\nSources: {sources}"
-    print(formatted_response)
+    # sources = [doc.metadata.get("id", None) for doc, _score in results]
+    # formatted_response = f"Response: {response_text}\nSources: {sources}"
     return response_text
 
 
