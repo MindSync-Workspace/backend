@@ -23,7 +23,15 @@ class ChatCreate(BaseModel):
     document_id: int
     user_id: int
     org_id: Optional[int] = None
-    # token_identifier: str
+    is_human: bool
+    text: str
+
+
+class ChatCreateWhatsapp(BaseModel):
+    number: str
+    user_id: Optional[int] = None
+    document_id: Optional[int] = None
+    # title: str
     is_human: bool
     text: str
 

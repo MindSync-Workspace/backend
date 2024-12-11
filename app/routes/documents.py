@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, status, UploadFile, Form, File
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, status, UploadFile, Form, File
+
 from app.controllers.document_controller import DocumentController
 from app.schemas.documents import (
     DocumentCreate,
@@ -7,15 +7,12 @@ from app.schemas.documents import (
     DocumentResponse,
     DocumentsResponse,
 )
-from typing import Optional
+
 from app.utils.response import create_response
 from app.utils.chroma.documents import (
-    load_documents,
-    add_docs_to_new_collection,
-    split_documents,
+    reset_database,
 )
 
-from app.utils.rag.rag import get_chat_response_from_model
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 document_controller = DocumentController()
@@ -38,9 +35,7 @@ async def upload_document(
     - **file**: The document file to upload.
     """
 
-    document_data = DocumentCreate(
-        user_id=user_id, title=title, summary="tteeeesssstttt"
-    )
+    document_data = DocumentCreate(user_id=user_id, title=title)
 
     return await document_controller.upload_document(document_data, file)
 
@@ -136,7 +131,6 @@ async def upload_document_from_whatsapp(
     - **title**: The title of the document.
     - **file**: The document file to upload.
     """
-    print(number, title)
 
     document_data = DocumentCreate(number=number, title=title, summary="tteeeesssstttt")
 
@@ -164,12 +158,16 @@ async def upload_document_from_whatsapp(
         # documents = load_documents("app\\utils\\document.pdf")
 
         # chunks = split_documents(documents)
-        # await add_docs_to_new_collection(chunks)
+        # await add_docs_to_new_collection(chunks, 1)
 
         #
-        response = get_chat_response_from_model("apa manfaat dari penelitian ini?")
+        reset_database()
+        # response = get_chat_response_from_model(
+        #     "Maksud penelitian ini,jawab dengan 20 kata maksimal",
+        #     1,
+        # )
         return create_response(
-            status_code=200, message="Berhasil", data={"response": response}
+            status_code=200, message="Berhasil", data={"response": "Berhasil hapus"}
         )
     except Exception as e:
         print(e)

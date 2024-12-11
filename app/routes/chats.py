@@ -1,7 +1,13 @@
 from fastapi import APIRouter, status
 from app.controllers.chat_controller import ChatController
-from app.schemas.chats import ChatCreate, ChatResponse, ChatUpdate, ChatsResponse
-from typing import List
+from app.schemas.chats import (
+    ChatCreate,
+    ChatResponse,
+    ChatUpdate,
+    ChatsResponse,
+    ChatCreateWhatsapp,
+)
+
 
 router = APIRouter(prefix="/chats", tags=["Chats"])
 chat_controller = ChatController()
@@ -61,3 +67,19 @@ async def delete_chat(chat_id: int):
     - **chat_id**: The unique identifier for the chat.
     """
     return await chat_controller.delete_chat(chat_id)
+
+
+@router.post(
+    "/whatsapps",
+    response_model=ChatResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new chat on whatsapp (**BOT**)",
+)
+async def create_chat(chat_data: ChatCreateWhatsapp):
+    """
+    Create a new chat and get bot response.
+    - **number**: The unique whatsapp number.
+    - **is_human**: Indicates if the message is from a human.
+    - **text**: The content of the chat message.
+    """
+    return await chat_controller.create_chat_and_get_bot_response_whatsapp(chat_data)

@@ -6,7 +6,7 @@ from tortoise.contrib.pydantic import pydantic_model_creator
 class Chats(models.Model):
     id = fields.IntField(pk=True)
     document = fields.ForeignKeyField("models.Documents", related_name="chats")
-    text = fields.CharField(max_length=255)
+    text = fields.TextField()
     is_human = fields.BooleanField()
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)

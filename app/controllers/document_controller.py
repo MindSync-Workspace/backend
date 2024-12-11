@@ -20,6 +20,12 @@ import logging
 from app.utils.encrypt import encrypt_document_aes, decrypt_document_aes
 from app.utils.get_user_id import get_user_id_by_whatsapp_number
 from dotenv import load_dotenv
+from app.utils.chroma.documents import (
+    load_documents_from_file,
+    add_docs_to_new_collection,
+    split_documents,
+)
+from app.utils.rag.rag import do_summarize_text
 
 load_dotenv()
 
@@ -42,7 +48,7 @@ class DocumentController:
         self.kms_client = kms.KeyManagementServiceClient(credentials=credentials)
         self.key_name = os.getenv("KMS_KEY_NAME")
         if not self.key_name:
-            raise Exception("KMS_KEY_NAME environment variable is not set.")
+            raise Exception("KMS_KEY_NAME environment variable tidak ditemukan.")
 
     async def upload_document(self, document_data: DocumentCreate, file: UploadFile):
         try:
@@ -56,26 +62,15 @@ class DocumentController:
             file_name = file.filename
 
             # Extract file extension (e.g., .pdf, .jpg)
-            extension_type = Path(file_name).suffix.lstrip('.')  # Remove leading dot
-
-            # Get user_id from document_data
-            user_id = document_data.user_id
-
-            if not user_id:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="User ID is required to upload the document",
-                )
-
-            # Create a directory for the user if it doesn't exist
-            user_directory = Path("media") / str(user_id)
-            user_directory.mkdir(parents=True, exist_ok=True)
+            extension_type = Path(file_name).suffix.lstrip(".")  # Remove leading dot
 
             # Encrypt the file
             encrypted_data = encrypt_document_aes(file_data, encryption_key)
 
-            # Save the encrypted file to the user's directory
-            encrypted_file_path = user_directory / (file_name + ".enc")
+            # Save only the encrypted file
+            encrypted_file_path = Path("media") / (
+                file_name + ".enc"
+            )  # Store encrypted version with '.enc' extension
             with open(encrypted_file_path, "wb") as f:
                 f.write(encrypted_data)  # Save the encrypted data
 
@@ -83,9 +78,10 @@ class DocumentController:
             doc_dict = document_data.model_dump()
             doc_dict["file_path"] = str(encrypted_file_path)  # Path to encrypted file
             doc_dict["file_size"] = len(file_data)  # Size of the encrypted file
-            doc_dict["encryption_key"] = encryption_key_base64  # Store the base64-encoded encryption key
+            doc_dict["encryption_key"] = (
+                encryption_key_base64  # Store the base64-encoded encryption key
+            )
             doc_dict["extension_type"] = extension_type  # Store the file extension type
-
             # Create the document entry in the database
             doc_obj = await Documents.create(**doc_dict)
 
@@ -93,16 +89,38 @@ class DocumentController:
             doc_data = await DocumentPydantic.from_tortoise_orm(doc_obj)
             # Remove unwanted fields before sending the response
             response_data = doc_data.model_dump()
-            response_data.pop('file_path', None)
-            response_data.pop('encryption_key', None)
-            response_data.pop('file_size', None)
-            response_data.pop('extension_type', None)
+            response_data.pop("file_path", None)
+            response_data.pop("encryption_key", None)
+            response_data.pop("file_size", None)
+            response_data.pop("extension_type", None)
+
+            documents = load_documents_from_file(file_data, file_name, extension_type)
+            chunks = split_documents(documents)
+            await add_docs_to_new_collection(
+                chunks, document_data.user_id, response_data["id"]
+            )
+
+            summary = do_summarize_text(
+                chunks,
+            )
+            response_data["summary"] = summary
+
+            await self.update_document(
+                DocumentUpdate(
+                    id=response_data["id"],
+                    user_id=document_data.user_id,
+                    summary=summary,
+                )
+            )
 
             return create_response(
                 status_code=status.HTTP_201_CREATED,
                 message="Document berhasil diupload",
                 data=response_data,
             )
+
+        except HTTPException as http_exc:
+            raise http_exc
 
         except Exception as e:
             logging.error(f"Error saat mengupload document: {e}")
@@ -163,7 +181,7 @@ class DocumentController:
 
             return create_response(
                 status_code=status.HTTP_200_OK,
-                message="Document updated successfully",
+                message="Berhasil update dokumen",
                 data=doc_data.model_dump(),
             )
 

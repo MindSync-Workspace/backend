@@ -20,7 +20,7 @@ async def create_user(user_data: UserCreate, content_type: str = Header(None)):
     - **email**: The user's email address.
     - **password**: The user's password (hashed and stored securely).
     """
-    print(content_type)
+
     return await user_controller.create_user(user_data)
 
 
