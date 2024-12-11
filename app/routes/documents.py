@@ -167,7 +167,7 @@ async def upload_document_from_whatsapp(
         # await add_docs_to_new_collection(chunks)
 
         #
-        response = await get_chat_response_from_model("Who is the author?")
+        response = get_chat_response_from_model("apa manfaat dari penelitian ini?")
         return create_response(
             status_code=200, message="Berhasil", data={"response": response}
         )

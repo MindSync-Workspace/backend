@@ -49,7 +49,7 @@ class DocumentController:
             # Generate a random encryption key (AES-256)
             encryption_key = os.urandom(32)
 
-            # # Encode the encryption key to base64
+            # Encode the encryption key to base64
             encryption_key_base64 = base64.b64encode(encryption_key).decode("utf-8")
 
             file_data = await file.read()
@@ -58,11 +58,24 @@ class DocumentController:
             # Extract file extension (e.g., .pdf, .jpg)
             extension_type = Path(file_name).suffix.lstrip('.')  # Remove leading dot
 
+            # Get user_id from document_data
+            user_id = document_data.user_id
+
+            if not user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="User ID is required to upload the document",
+                )
+
+            # Create a directory for the user if it doesn't exist
+            user_directory = Path("media") / str(user_id)
+            user_directory.mkdir(parents=True, exist_ok=True)
+
             # Encrypt the file
             encrypted_data = encrypt_document_aes(file_data, encryption_key)
 
-            # Save only the encrypted file
-            encrypted_file_path = Path("media") / (file_name + ".enc")  # Store encrypted version with '.enc' extension
+            # Save the encrypted file to the user's directory
+            encrypted_file_path = user_directory / (file_name + ".enc")
             with open(encrypted_file_path, "wb") as f:
                 f.write(encrypted_data)  # Save the encrypted data
 
@@ -92,7 +105,6 @@ class DocumentController:
             )
 
         except Exception as e:
-
             logging.error(f"Error saat mengupload document: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

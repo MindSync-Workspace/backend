@@ -8,6 +8,7 @@ class Notes(models.Model):
     text = fields.CharField(max_length=255)
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
+    cluster = fields.IntField(null=True, default=None)
     user = fields.ForeignKeyField("models.Users", related_name="notes")
     org = fields.ForeignKeyField(
         "models.Organizations", related_name="notes", null=True, default=None

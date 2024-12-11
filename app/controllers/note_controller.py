@@ -5,6 +5,7 @@ from app.models.whatsapps import Whatsapps
 from app.schemas.notes import NoteCreate, NoteUpdate, NoteSearch, NoteData
 from tortoise.contrib.pydantic import pydantic_model_creator
 from app.utils.response import create_response
+import httpx
 import logging
 import datetime
 from app.utils.validate_org_access import validate_org_access
@@ -26,16 +27,13 @@ class NoteController:
     async def create_note(self, note_data: NoteCreate):
         try:
             note_dict = note_data.model_dump()
-
             metadata = {
                 "user_id": note_dict["user_id"],
             }
 
             if "org_id" in note_dict and note_dict["org_id"] is not None:
                 metadata["org_id"] = note_dict["org_id"]
-                has_access = await validate_org_access(
-                    note_data.org_id, note_data.user_id
-                )
+                has_access = await validate_org_access(note_data.org_id, note_data.user_id)
                 if not has_access:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
@@ -43,6 +41,42 @@ class NoteController:
                             "Anda tidak memiliki akses untuk membuat note di organisasi ini."
                         ],
                     )
+                
+            existing_notes = await Notes.all().values("text", "cluster")
+
+            similarity_probability = 0
+            cluster_id_to_use = None
+            print(existing_notes)
+            for existing_note in existing_notes:
+                data = {
+                    "text1": note_data.text,
+                    "text2": existing_note["text"]
+                }
+                async with httpx.AsyncClient() as client:
+                    api_url = "https://model-serving-3650861314.us-east1.run.app/predict"
+                    response = await client.post(api_url, json=data)
+
+                    if response.status_code != 200:
+                        raise HTTPException(
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=["Error connecting to similarity API"]
+                        )
+
+                    similarity_data = response.json()
+                    similarity_probability = similarity_data.get("similarity_probability", 0)
+                    print(similarity_probability)
+                    if similarity_probability >= 0.5:
+                        print(existing_note.get("cluster"))
+                        cluster_id_to_use = existing_note.get("cluster")
+                        break  
+
+            if similarity_probability < 0.5:
+                print("Creating new cluster")
+                last_cluster = await Notes.all().order_by("-cluster").first()
+                cluster_id_to_use = (last_cluster.cluster + 1) if last_cluster else 1
+
+            print(cluster_id_to_use)
+            note_dict["cluster"] = cluster_id_to_use
 
             note_obj = await Notes.create(**note_dict)
             logging.info(f"Note dibuat dengan ID: {note_obj.id}")
