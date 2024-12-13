@@ -31,7 +31,7 @@ async def create_note(note_data: NoteCreate):
 
 @router.get(
     "/{note_id}",
-    response_model=List[NotesResponse],
+    response_model=NoteResponse,
     status_code=status.HTTP_200_OK,
     summary="Get single note by its ID",
 )
@@ -45,7 +45,7 @@ async def get_note_by_id(note_id: int):
 
 @router.get(
     "/users/{user_id}",
-    response_model=List[NotesResponse],
+    response_model=NotesResponse,
     status_code=status.HTTP_200_OK,
     summary="Get all notes by user ID",
 )
@@ -63,7 +63,7 @@ async def get_notes_by_user_id(user_id: int):
     status_code=status.HTTP_200_OK,
     summary="Get all notes by organization ID",
 )
-async def get_notes_by_user_id_and_org_id(organizations_id: int):
+async def get_notes_by_org_id(organizations_id: int):
     """
     Fetch all notes for a organization ID.
     - **org_id**: The unique organization ID.
