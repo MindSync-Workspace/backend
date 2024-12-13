@@ -139,19 +139,29 @@ class NoteController:
     async def get_notes(self, user_id: int):
         try:
             notes_query = Notes.filter(user_id=user_id, org_id=None)
-            # notes_query = notes_query.prefetch_related("user")
             notes_data = await NotePydantic.from_queryset(notes_query)
+
+            # Convert notes to dictionaries and prepare for grouping
             notes_dict = [note.model_dump() for note in notes_data]
 
+            # Process each note asynchronously
             tasks = [process_note(note, user_id) for note in notes_dict]
 
-            ## Validate user_id same with who that request
+            # Validate user_id same with who that request
             await asyncio.gather(*tasks)
+
+            # Group notes by cluster
+            grouped_notes = {}
+            for note in notes_dict:
+                cluster = note.get("cluster", "uncategorized")  # Default to 'uncategorized' if cluster is None
+                if cluster not in grouped_notes:
+                    grouped_notes[cluster] = []
+                grouped_notes[cluster].append(note)
 
             return create_response(
                 status_code=status.HTTP_200_OK,
                 message="Berhasil mendapatkan notes",
-                data=notes_dict,
+                data=grouped_notes,
             )
 
         except HTTPException as http_exc:
@@ -163,8 +173,9 @@ class NoteController:
             )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=["Terjadi error saat mengambi data notes", str(e)],
+                detail=["Terjadi error saat mengambil data notes", str(e)],
             )
+
 
     async def get_notes_by_org_id(self, org_id: int):
         try:

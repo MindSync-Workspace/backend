@@ -1,7 +1,9 @@
-python -m venv venv
+### Step how to run this project
 
-venv\Scripts\activate
-venv/bin/activate
+python -m venv .venv
+
+.venv\Scripts\activate <<<----- for windows 
+.venv/bin/activate <<<----- for Linux/Macos
 
 pip install -r requirements.txt
 
@@ -10,8 +12,6 @@ uvicorn main:app --reload
 ---
 
 ### migrate command
-
-// kalo update constraint harus hapus manual dbnya
 
 hapus folder migrations (jangan lupa server harus jalan)
 

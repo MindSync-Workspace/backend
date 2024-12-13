@@ -41,7 +41,6 @@ class UserController:
             return create_response(
                 status_code=status.HTTP_201_CREATED,
                 message="User berhasil dibuat",
-                data=user_data.model_dump(),
             )
         except HTTPException as http_exc:
             raise http_exc
